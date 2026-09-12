@@ -15,6 +15,7 @@ import { initThemeBridge } from './themeBridge';
 import { initSpeechBridge } from './speechBridge';
 import { initTerminalBridge } from './terminalBridge';
 import { terminalService } from '../services/terminal';
+import { initGithubBridge } from './githubBridge';
 
 export type BridgeDependencies = Record<string, never>;
 
@@ -29,11 +30,13 @@ export function initAllBridges(_deps: BridgeDependencies = {}): void {
   initThemeBridge();
   initSpeechBridge();
   initTerminalBridge();
+  initGithubBridge();
 }
 
 export {
   initApplicationBridge,
   initDialogBridge,
+  initGithubBridge,
   initNotificationBridge,
   initSpeechBridge,
   initSystemSettingsBridge,

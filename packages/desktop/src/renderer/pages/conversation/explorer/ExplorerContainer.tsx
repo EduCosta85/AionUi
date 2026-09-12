@@ -64,6 +64,7 @@ import type { SearchHit } from './search/searchModel';
 import { ScmPanel } from '../SourceControl/ScmPanel';
 import { rediscoverRepos, refreshAllRepos } from '../SourceControl/scmStore';
 import { TerminalPanel, listenTerminalExecEvent } from '../Terminal';
+import { GitHubIssuesPanel } from '../GitHubIssues';
 
 export type ExplorerContainerProps = {
   /** Owning project id — scopes the store's fact cache + localStorage UI state. */
@@ -248,13 +249,20 @@ export const ExplorerContainer: React.FC<ExplorerContainerProps> = ({ projectId 
   // All operate on the tree's `{pe_id, relative_path}` identity over WS fs/*
   // commands; the change is pushed back as a delta on the parent dir's
   // Component switcher tab (host component switcher, this round in-container):
-  // 'files' = the Explorer, 'changes' = the Source Control panel, 'terminal' = interactive terminal.
-  const [activeTab, setActiveTab] = useState<'files' | 'changes' | 'terminal'>('files');
+  // 'files' = the Explorer, 'changes' = the Source Control panel, 'terminal' = interactive terminal, 'issues' = GitHub Issues.
+  const [activeTab, setActiveTab] = useState<'files' | 'changes' | 'terminal' | 'issues'>('files');
   const [terminalMounted, setTerminalMounted] = useState(false);
+  const [issuesMounted, setIssuesMounted] = useState(false);
 
   useEffect(() => {
     if (activeTab === 'terminal') {
       setTerminalMounted(true);
+    }
+  }, [activeTab]);
+
+  useEffect(() => {
+    if (activeTab === 'issues') {
+      setIssuesMounted(true);
     }
   }, [activeTab]);
 
@@ -268,7 +276,6 @@ export const ExplorerContainer: React.FC<ExplorerContainerProps> = ({ projectId 
     });
     return unlisten;
   }, [projectId]);
-
   // Busy flag for the top-bar refresh: spins the icon and disables re-click while a
   // refresh is in flight (so rapid clicks don't fan out redundant backend round-trips).
   const [refreshing, setRefreshing] = useState(false);
@@ -525,7 +532,7 @@ export const ExplorerContainer: React.FC<ExplorerContainerProps> = ({ projectId 
     }
   };
 
-  const tabButton = (key: 'files' | 'changes' | 'terminal', label: string) => (
+  const tabButton = (key: 'files' | 'changes' | 'terminal' | 'issues', label: string) => (
     <Button
       type='text'
       size='small'
@@ -538,7 +545,7 @@ export const ExplorerContainer: React.FC<ExplorerContainerProps> = ({ projectId 
 
   return (
     <div className='h-full flex flex-col min-h-0'>
-      {/* Host component-switcher tab bar: 文件 = explorer, 变更 = source control, 终端 = terminal.
+      {/* Host component-switcher tab bar: 文件 = explorer, 变更 = source control, 终端 = terminal, issues = GitHub Issues.
           Tabs are left-aligned and scroll horizontally when they overflow; the
           attach + open-externally cluster is pinned right (flex-shrink-0) with
           container padding, so it never scrolls with the tabs nor clips at narrow
@@ -548,6 +555,7 @@ export const ExplorerContainer: React.FC<ExplorerContainerProps> = ({ projectId 
           {tabButton('files', t('conversation.explorer.tabs.files'))}
           {tabButton('changes', t('conversation.explorer.tabs.changes'))}
           {tabButton('terminal', t('conversation.explorer.tabs.terminal'))}
+          {tabButton('issues', t('conversation.explorer.tabs.issues', { defaultValue: 'Issues' }))}
         </div>
         <div className='flex items-center gap-2px flex-shrink-0'>
           {/* Right cluster order (VS Code parity): project-scope actions first (add
@@ -570,29 +578,31 @@ export const ExplorerContainer: React.FC<ExplorerContainerProps> = ({ projectId 
             />
           </Tooltip>
           {workspacePath && <WorkspaceOpenButton workspacePath={workspacePath} isTemporary={false} />}
-          <Tooltip
-            content={
-              activeTab === 'changes'
-                ? t('conversation.explorer.refreshChanges')
-                : t('conversation.explorer.refreshFiles')
-            }
-            mini
-            position='br'
-          >
-            <Button
-              type='text'
-              size='small'
-              className='flex items-center justify-center'
-              loading={refreshing}
-              icon={<Refresh theme='outline' size='16' />}
-              aria-label={
+          {activeTab !== 'issues' && (
+            <Tooltip
+              content={
                 activeTab === 'changes'
                   ? t('conversation.explorer.refreshChanges')
                   : t('conversation.explorer.refreshFiles')
               }
-              onClick={() => void handleRefreshActiveTab()}
-            />
-          </Tooltip>
+              mini
+              position='br'
+            >
+              <Button
+                type='text'
+                size='small'
+                className='flex items-center justify-center'
+                loading={refreshing}
+                icon={<Refresh theme='outline' size='16' />}
+                aria-label={
+                  activeTab === 'changes'
+                    ? t('conversation.explorer.refreshChanges')
+                    : t('conversation.explorer.refreshFiles')
+                }
+                onClick={() => void handleRefreshActiveTab()}
+              />
+            </Tooltip>
+          )}
           {activeTab === 'files' && (
             <Tooltip content={t('conversation.explorer.collapseAll')} mini position='br'>
               <Button
@@ -657,7 +667,11 @@ export const ExplorerContainer: React.FC<ExplorerContainerProps> = ({ projectId 
           <TerminalPanel projectId={projectId} cwd={workspacePath} visible={activeTab === 'terminal'} />
         </div>
       )}
-
+      {issuesMounted && (
+        <div className='flex-1 min-h-0' style={activeTab === 'issues' ? undefined : { display: 'none' }}>
+          <GitHubIssuesPanel projectId={projectId} cwd={workspacePath} visible={activeTab === 'issues'} />
+        </div>
+      )}
       <Modal
         title={nameDialog ? t(nameDialogTitleKey(nameDialog.mode)) : ''}
         visible={nameDialog !== null}
