@@ -13,6 +13,8 @@ import { initNotificationBridge } from './notificationBridge';
 import { initWebuiBridge } from './webuiBridge';
 import { initThemeBridge } from './themeBridge';
 import { initSpeechBridge } from './speechBridge';
+import { initTerminalBridge } from './terminalBridge';
+import { terminalService } from '../services/terminal';
 
 export type BridgeDependencies = Record<string, never>;
 
@@ -26,6 +28,7 @@ export function initAllBridges(_deps: BridgeDependencies = {}): void {
   initWebuiBridge();
   initThemeBridge();
   initSpeechBridge();
+  initTerminalBridge();
 }
 
 export {
@@ -34,6 +37,7 @@ export {
   initNotificationBridge,
   initSpeechBridge,
   initSystemSettingsBridge,
+  initTerminalBridge,
   initThemeBridge,
   initUpdateBridge,
   initWindowControlsBridge,
@@ -41,3 +45,6 @@ export {
 };
 export { registerWindowMaximizeListeners } from './windowControlsBridge';
 export const disposeAllTeamSessions = (): Promise<void> => Promise.resolve();
+export const disposeAllTerminalSessions = (): void => {
+  terminalService.closeAll();
+};
