@@ -330,6 +330,12 @@ check: lint fmt-check typecheck i18n-check
 push *ARGS: lint-strict fmt-check typecheck i18n-check test
     git push {{ ARGS }}
 
+# Fetch and merge latest changes from official upstream repository
+sync-upstream:
+    git fetch upstream main
+    git merge upstream/main --no-edit
+    @just check
+
 # Lint with only errors reported (for CI/push gates)
 lint-strict:
     bun run lint -- --quiet
