@@ -557,6 +557,9 @@
     "resetsNow": "resets now",
     "fiveHourLimit": "5-Hour Limit",
     "weeklyLimit": "Weekly Limit",
+    "weeklyShort": "Wk",
+    "quotaDualSummary": "5h: {{fiveHour}} • {{weeklyLabel}}: {{weekly}}",
+    "active": "Active",
     "sessionUsage": "Session Usage"
   },
   "skill_generator": {

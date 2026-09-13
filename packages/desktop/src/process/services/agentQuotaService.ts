@@ -21,6 +21,8 @@ export type QuotaBucket = {
 export type QuotaGroup = {
   name: string;
   description?: string;
+  agentId?: string;
+  agentName?: string;
   buckets: QuotaBucket[];
 };
 
@@ -124,6 +126,8 @@ export async function fetchAgyQuota(options?: { cliPath?: string; forceRefresh?:
         const groups: QuotaGroup[] = rawGroups.map((g) => ({
           name: String(g.name || ''),
           description: g.description ? String(g.description) : undefined,
+          agentId: 'antigravity',
+          agentName: 'Antigravity',
           buckets: Array.isArray(g.buckets)
             ? g.buckets.map((b) => ({
                 id: String(b.id || ''),

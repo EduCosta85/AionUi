@@ -672,6 +672,8 @@ export interface ModelQuotaBucket {
 export interface ModelQuotaGroup {
   name: string;
   description?: string;
+  agentId?: string;
+  agentName?: string;
   buckets: ModelQuotaBucket[];
 }
 

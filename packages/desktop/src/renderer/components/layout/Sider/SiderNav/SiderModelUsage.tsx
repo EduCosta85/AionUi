@@ -45,6 +45,46 @@ export function formatResetCountdown(resetTime: string, t: TFunction): string {
   return t('conversation.contextUsage.resetsIn', { defaultValue: 'resets in {{time}}', time: timeStr });
 }
 
+export function getQuotaEntrySubtitle(
+  entry: {
+    fiveHourPct?: number;
+    weeklyPct?: number;
+  },
+  locale: string,
+  t: TFunction
+): string {
+  if (entry.fiveHourPct !== undefined && entry.weeklyPct !== undefined) {
+    const formatted5h = formatPercentage(entry.fiveHourPct, locale);
+    const formattedWk = formatPercentage(entry.weeklyPct, locale);
+    const weeklyLabel = t('conversation.contextUsage.weeklyShort', 'Wk');
+    return t('conversation.contextUsage.quotaDualSummary', {
+      defaultValue: '5h: {{fiveHour}} • {{weeklyLabel}}: {{weekly}}',
+      fiveHour: formatted5h,
+      weeklyLabel,
+      weekly: formattedWk,
+    });
+  }
+
+  if (entry.fiveHourPct !== undefined) {
+    return t('conversation.contextUsage.quotaRemainingSummary', {
+      defaultValue: '{{percentage}} remaining (5h)',
+      percentage: formatPercentage(entry.fiveHourPct, locale),
+      window: '5h',
+    });
+  }
+
+  if (entry.weeklyPct !== undefined) {
+    const weeklyLabel = t('conversation.contextUsage.weeklyLimit', 'Weekly');
+    return t('conversation.contextUsage.quotaRemainingSummary', {
+      defaultValue: '{{percentage}} remaining ({{window}})',
+      percentage: formatPercentage(entry.weeklyPct, locale),
+      window: weeklyLabel,
+    });
+  }
+
+  return '';
+}
+
 interface SiderModelUsageProps {
   collapsed?: boolean;
   isMobile?: boolean;
@@ -72,6 +112,7 @@ const SiderModelUsage: React.FC<SiderModelUsageProps> = ({
     cost,
     breakdown,
     quotaData,
+    quotaEntries,
     primaryBucket,
     quotaType,
   } = useActiveModelUsage();
@@ -116,15 +157,18 @@ const SiderModelUsage: React.FC<SiderModelUsageProps> = ({
   // Ring calculations for SVG gauge
   const strokeColor = isDanger ? 'rgb(var(--danger-6))' : isWarning ? 'rgb(var(--warning-6))' : 'rgb(var(--primary-6))';
 
-  // Expanded ring (size 22, r 8.5)
-  const radiusExpanded = 8.5;
+  // Expanded entry ring (size 20, r 7.5)
+  const radiusExpanded = 7.5;
   const circumferenceExpanded = 2 * Math.PI * radiusExpanded;
-  const strokeDashoffsetExpanded = circumferenceExpanded - (Math.min(percentage, 100) / 100) * circumferenceExpanded;
 
-  // Collapsed ring (size 20, r 7.5)
-  const radiusCollapsed = 7.5;
+  // Collapsed entry ring (size 18, r 7)
+  const radiusCollapsed = 7;
   const circumferenceCollapsed = 2 * Math.PI * radiusCollapsed;
-  const strokeDashoffsetCollapsed = circumferenceCollapsed - (Math.min(percentage, 100) / 100) * circumferenceCollapsed;
+
+  // Fallback single ring (size 22, r 8.5)
+  const radiusFallback = 8.5;
+  const circumferenceFallback = 2 * Math.PI * radiusFallback;
+  const strokeDashoffsetFallback = circumferenceFallback - (Math.min(percentage, 100) / 100) * circumferenceFallback;
 
   const breakdownParts = useMemo(() => {
     if (!breakdown) return [];
@@ -182,64 +226,79 @@ const SiderModelUsage: React.FC<SiderModelUsageProps> = ({
         )}
       </div>
 
-      {/* Real Account Quota (e.g. from agy /usage) */}
-      {quotaData && quotaData.groups.length > 0 ? (
+      {/* Real Account Quotas */}
+      {quotaEntries.length > 0 ? (
         <div className='flex flex-col gap-6px'>
           <div className='text-11px font-semibold uppercase tracking-wider text-t-secondary'>
             {t('conversation.contextUsage.modelQuota', 'Model Quota')}
           </div>
-          {quotaData.groups.map((group, groupIdx) => (
-            <div key={groupIdx} className='flex flex-col gap-4px'>
-              <div className='text-12px font-medium text-t-primary'>{group.name}</div>
-              {group.buckets.map((bucket, bucketIdx) => {
-                const bucketPct = Math.round(bucket.remainingFraction * 1000) / 10;
-                const bucketPctFormatted = formatPercentage(bucketPct, locale);
-                const bucketIsDanger = bucketPct <= 10;
-                const bucketIsWarning = bucketPct <= 30;
-                const bucketColor = bucketIsDanger
-                  ? 'rgb(var(--danger-6))'
-                  : bucketIsWarning
-                    ? 'rgb(var(--warning-6))'
-                    : 'rgb(var(--primary-6))';
-                const bucketLabel =
-                  bucket.window === '5h'
-                    ? t('conversation.contextUsage.fiveHourLimit', '5-Hour Limit')
-                    : bucket.window === 'weekly'
-                      ? t('conversation.contextUsage.weeklyLimit', 'Weekly Limit')
-                      : bucket.name;
+          {quotaEntries.map((entry) => {
+            const group = quotaData?.groups.find((g) => g.name === entry.groupName);
+            const buckets = group?.buckets || [];
 
-                return (
-                  <div key={bucketIdx} className='flex flex-col gap-2px'>
-                    <div className='flex items-center justify-between text-11px'>
-                      <span className='text-t-secondary'>{bucketLabel}</span>
-                      <span
-                        className={classNames(
-                          'font-mono font-medium',
-                          bucketIsDanger ? 'text-danger-6' : bucketIsWarning ? 'text-warning-6' : 'text-t-primary'
-                        )}
-                      >
-                        {bucketPctFormatted} {t('conversation.contextUsage.remaining', 'remaining')}
-                      </span>
-                    </div>
-                    <div className='w-full h-5px rd-3px bg-fill-3 overflow-hidden'>
-                      <div
-                        className='h-full rd-3px transition-all duration-300'
-                        style={{
-                          width: `${Math.min(bucketPct, 100)}%`,
-                          backgroundColor: bucketColor,
-                        }}
-                      />
-                    </div>
-                    {bucket.resetTime && (
-                      <div className='text-10px text-t-tertiary flex justify-end'>
-                        {formatResetCountdown(bucket.resetTime, t)}
+            return (
+              <div
+                key={entry.key}
+                className='flex flex-col gap-4px p-6px rd-6px bg-fill-1 border border-solid border-[var(--color-border-2)]'
+              >
+                <div className='flex items-center justify-between'>
+                  <span className='text-12px font-medium text-t-primary'>{entry.name}</span>
+                  {entry.isActive && (
+                    <span className='px-4px py-0.5px text-9px font-medium rd-3px bg-primary/10 text-primary'>
+                      {t('conversation.contextUsage.active', 'Active')}
+                    </span>
+                  )}
+                </div>
+                {buckets.map((bucket, bucketIdx) => {
+                  const bucketPct = Math.round(bucket.remainingFraction * 1000) / 10;
+                  const bucketPctFormatted = formatPercentage(bucketPct, locale);
+                  const bucketIsDanger = bucketPct <= 10;
+                  const bucketIsWarning = bucketPct <= 30;
+                  const bucketColor = bucketIsDanger
+                    ? 'rgb(var(--danger-6))'
+                    : bucketIsWarning
+                      ? 'rgb(var(--warning-6))'
+                      : 'rgb(var(--primary-6))';
+                  const bucketLabel =
+                    bucket.window === '5h'
+                      ? t('conversation.contextUsage.fiveHourLimit', '5-Hour Limit')
+                      : bucket.window === 'weekly'
+                        ? t('conversation.contextUsage.weeklyLimit', 'Weekly Limit')
+                        : bucket.name;
+
+                  return (
+                    <div key={bucketIdx} className='flex flex-col gap-2px'>
+                      <div className='flex items-center justify-between text-11px'>
+                        <span className='text-t-secondary'>{bucketLabel}</span>
+                        <span
+                          className={classNames(
+                            'font-mono font-medium',
+                            bucketIsDanger ? 'text-danger-6' : bucketIsWarning ? 'text-warning-6' : 'text-t-primary'
+                          )}
+                        >
+                          {bucketPctFormatted} {t('conversation.contextUsage.remaining', 'remaining')}
+                        </span>
                       </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          ))}
+                      <div className='w-full h-5px rd-3px bg-fill-3 overflow-hidden'>
+                        <div
+                          className='h-full rd-3px transition-all duration-300'
+                          style={{
+                            width: `${Math.min(bucketPct, 100)}%`,
+                            backgroundColor: bucketColor,
+                          }}
+                        />
+                      </div>
+                      {bucket.resetTime && (
+                        <div className='text-10px text-t-tertiary flex justify-end'>
+                          {formatResetCountdown(bucket.resetTime, t)}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })}
         </div>
       ) : hasLimit && quotaType === 'context_window' ? (
         /* Standard Context Window Quota */
@@ -319,32 +378,146 @@ const SiderModelUsage: React.FC<SiderModelUsageProps> = ({
       className='sider-model-usage-popover'
     >
       {collapsed ? (
+        quotaEntries.length > 0 ? (
+          <div
+            onClick={handleNavigateToModelSettings}
+            data-testid='sider-model-usage-collapsed'
+            className='w-full flex flex-col items-center justify-center gap-4px py-2px rd-0.5rem cursor-pointer transition-colors hover:bg-fill-3 active:bg-fill-4'
+          >
+            {quotaEntries.map((entry) => {
+              const subtitle = getQuotaEntrySubtitle(entry, locale, t);
+              const strokeColorEntry = entry.isDanger
+                ? 'rgb(var(--danger-6))'
+                : entry.isWarning
+                  ? 'rgb(var(--warning-6))'
+                  : 'rgb(var(--primary-6))';
+              const strokeDashoffset =
+                circumferenceCollapsed - (Math.min(entry.primaryPct, 100) / 100) * circumferenceCollapsed;
+
+              return (
+                <div
+                  key={entry.key}
+                  title={`${entry.name} - ${subtitle}`}
+                  className='size-20px flex items-center justify-center'
+                >
+                  <svg width='18' height='18' viewBox='0 0 18 18' style={{ transform: 'rotate(-90deg)' }}>
+                    <circle cx='9' cy='9' r='7' fill='none' stroke='var(--color-fill-3)' strokeWidth='1.8' />
+                    <circle
+                      cx='9'
+                      cy='9'
+                      r='7'
+                      fill='none'
+                      stroke={strokeColorEntry}
+                      strokeWidth='1.8'
+                      strokeLinecap='round'
+                      strokeDasharray={circumferenceCollapsed}
+                      strokeDashoffset={strokeDashoffset}
+                      style={{ transition: 'stroke-dashoffset 0.3s ease, stroke 0.3s ease' }}
+                    />
+                  </svg>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div
+            onClick={handleNavigateToModelSettings}
+            data-testid='sider-model-usage-collapsed'
+            className='h-34px w-full flex items-center justify-center rd-0.5rem cursor-pointer transition-colors hover:bg-fill-3 active:bg-fill-4'
+          >
+            {hasLimit ? (
+              <svg width='20' height='20' viewBox='0 0 20 20' style={{ transform: 'rotate(-90deg)' }}>
+                <circle cx='10' cy='10' r='7.5' fill='none' stroke='var(--color-fill-3)' strokeWidth='2' />
+                <circle
+                  cx='10'
+                  cy='10'
+                  r='7.5'
+                  fill='none'
+                  stroke={strokeColor}
+                  strokeWidth='2'
+                  strokeLinecap='round'
+                  strokeDasharray={circumferenceCollapsed}
+                  strokeDashoffset={circumferenceCollapsed - (Math.min(percentage, 100) / 100) * circumferenceCollapsed}
+                  style={{ transition: 'stroke-dashoffset 0.3s ease, stroke 0.3s ease' }}
+                />
+              </svg>
+            ) : (
+              <Brain theme='outline' size='16' fill='currentColor' className='text-t-secondary' />
+            )}
+          </div>
+        )
+      ) : quotaEntries.length > 0 ? (
         <div
           onClick={handleNavigateToModelSettings}
-          data-testid='sider-model-usage-collapsed'
-          className='h-34px w-full flex items-center justify-center rd-0.5rem cursor-pointer transition-colors hover:bg-fill-3 active:bg-fill-4'
-        >
-          {hasLimit ? (
-            <svg width='20' height='20' viewBox='0 0 20 20' style={{ transform: 'rotate(-90deg)' }}>
-              <circle cx='10' cy='10' r='7.5' fill='none' stroke='var(--color-fill-3)' strokeWidth='2' />
-              <circle
-                cx='10'
-                cy='10'
-                r='7.5'
-                fill='none'
-                stroke={strokeColor}
-                strokeWidth='2'
-                strokeLinecap='round'
-                strokeDasharray={circumferenceCollapsed}
-                strokeDashoffset={strokeDashoffsetCollapsed}
-                style={{ transition: 'stroke-dashoffset 0.3s ease, stroke 0.3s ease' }}
-              />
-            </svg>
-          ) : (
-            <Brain theme='outline' size='16' fill='currentColor' className='text-t-secondary' />
+          data-testid='sider-model-usage'
+          className={classNames(
+            'w-full flex flex-col gap-2px select-none min-w-0 cursor-pointer',
+            isMobile && 'sider-footer-btn-mobile'
           )}
+        >
+          {quotaEntries.map((entry) => {
+            const subtitle = getQuotaEntrySubtitle(entry, locale, t);
+            const entryColor = entry.isDanger
+              ? 'rgb(var(--danger-6))'
+              : entry.isWarning
+                ? 'rgb(var(--warning-6))'
+                : 'rgb(var(--primary-6))';
+            const strokeDashoffset =
+              circumferenceExpanded - (Math.min(entry.primaryPct, 100) / 100) * circumferenceExpanded;
+
+            return (
+              <div
+                key={entry.key}
+                data-testid={`sider-model-usage-entry-${entry.key}`}
+                className={classNames(
+                  'group h-36px flex items-center rd-0.5rem transition-colors px-8px py-3px hover:bg-fill-3 active:bg-fill-4 select-none min-w-0',
+                  entry.isActive && 'bg-fill-2/80'
+                )}
+              >
+                {/* Leading Icon / Circular Gauge */}
+                <span className='size-20px flex items-center justify-center shrink-0 me-8px relative'>
+                  <svg width='20' height='20' viewBox='0 0 20 20' style={{ transform: 'rotate(-90deg)' }}>
+                    <circle cx='10' cy='10' r='7.5' fill='none' stroke='var(--color-fill-3)' strokeWidth='2' />
+                    <circle
+                      cx='10'
+                      cy='10'
+                      r='7.5'
+                      fill='none'
+                      stroke={entryColor}
+                      strokeWidth='2'
+                      strokeLinecap='round'
+                      strokeDasharray={circumferenceExpanded}
+                      strokeDashoffset={strokeDashoffset}
+                      style={{ transition: 'stroke-dashoffset 0.3s ease, stroke 0.3s ease' }}
+                    />
+                  </svg>
+                </span>
+
+                {/* Model Name & Quota Info */}
+                <div className='flex flex-col min-w-0 flex-1 justify-center leading-tight'>
+                  <div className='flex items-center justify-between gap-4px min-w-0'>
+                    <span className='text-12px font-medium text-t-primary truncate' title={entry.name}>
+                      {entry.name}
+                    </span>
+                    <span
+                      className={classNames(
+                        'text-10px font-mono font-medium shrink-0',
+                        entry.isDanger ? 'text-danger-6' : entry.isWarning ? 'text-warning-6' : 'text-t-secondary'
+                      )}
+                    >
+                      {Math.round(entry.primaryPct)}%
+                    </span>
+                  </div>
+                  <span className='text-10px text-t-tertiary truncate' title={subtitle}>
+                    {subtitle}
+                  </span>
+                </div>
+              </div>
+            );
+          })}
         </div>
       ) : (
+        /* Fallback single model row */
         <div
           onClick={handleNavigateToModelSettings}
           data-testid='sider-model-usage'
@@ -366,8 +539,8 @@ const SiderModelUsage: React.FC<SiderModelUsageProps> = ({
                   stroke={strokeColor}
                   strokeWidth='2'
                   strokeLinecap='round'
-                  strokeDasharray={circumferenceExpanded}
-                  strokeDashoffset={strokeDashoffsetExpanded}
+                  strokeDasharray={circumferenceFallback}
+                  strokeDashoffset={strokeDashoffsetFallback}
                   style={{ transition: 'stroke-dashoffset 0.3s ease, stroke 0.3s ease' }}
                 />
               </svg>

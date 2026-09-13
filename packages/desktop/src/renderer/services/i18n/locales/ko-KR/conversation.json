@@ -557,6 +557,9 @@
     "resetsNow": "지금 재설정",
     "fiveHourLimit": "5시간 한도",
     "weeklyLimit": "주간 한도",
+    "weeklyShort": "주",
+    "quotaDualSummary": "5h: {{fiveHour}} • {{weeklyLabel}}: {{weekly}}",
+    "active": "활성",
     "sessionUsage": "세션 사용량"
   },
   "skill_generator": {

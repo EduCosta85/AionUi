@@ -558,6 +558,9 @@
     "resetsNow": "wird jetzt zurückgesetzt",
     "fiveHourLimit": "5-Stunden-Limit",
     "weeklyLimit": "Wöchentliches Limit",
+    "weeklyShort": "Wo",
+    "quotaDualSummary": "5h: {{fiveHour}} • {{weeklyLabel}}: {{weekly}}",
+    "active": "Aktiv",
     "sessionUsage": "Sitzungsnutzung"
   },
   "skill_generator": {
