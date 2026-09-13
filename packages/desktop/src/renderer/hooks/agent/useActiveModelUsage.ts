@@ -23,6 +23,21 @@ type ConversationUsageExtra = {
   codexModel?: string;
 };
 
+export type ModelQuotaEntry = {
+  key: string;
+  name: string;
+  groupName: string;
+  agentName?: string;
+  fiveHourPct?: number;
+  weeklyPct?: number;
+  fiveHourResetTime?: string;
+  weeklyResetTime?: string;
+  primaryPct: number;
+  isWarning: boolean;
+  isDanger: boolean;
+  isActive: boolean;
+};
+
 export type ActiveModelUsage = {
   modelName: string;
   agentName: string | null;
@@ -35,10 +50,26 @@ export type ActiveModelUsage = {
   cost?: TokenUsageCost;
   breakdown?: TokenUsageBreakdown;
   quotaData?: ModelQuotaData | null;
+  quotaEntries: ModelQuotaEntry[];
   activeGroup?: ModelQuotaGroup | null;
   primaryBucket?: ModelQuotaBucket | null;
   quotaType?: 'account_quota' | 'context_window';
 };
+
+export function formatQuotaDisplayName(groupName: string, agentName?: string): string {
+  const lower = groupName.toLowerCase();
+  const baseAgent = agentName || 'Antigravity';
+  if (lower.includes('gemini')) {
+    return `${baseAgent} (Gemini)`;
+  }
+  if (lower.includes('claude')) {
+    return `${baseAgent} (Claude)`;
+  }
+  if (agentName && !groupName.toLowerCase().includes(agentName.toLowerCase())) {
+    return `${agentName} (${groupName})`;
+  }
+  return groupName;
+}
 
 export function useActiveModelUsage(): ActiveModelUsage {
   const currentConversationId = useCurrentConversation();
@@ -135,18 +166,6 @@ export function useActiveModelUsage(): ActiveModelUsage {
   useEffect(() => {
     let cancelled = false;
 
-    const isAntigravity =
-      conversation?.type === 'antigravity' ||
-      extra?.backend === 'antigravity' ||
-      extra?.agent_name?.toLowerCase().includes('antigravity') ||
-      extra?.agent_name?.toLowerCase().includes('agy') ||
-      modelName.toLowerCase().includes('antigravity');
-
-    if (!isAntigravity && conversations.length > 0 && conversation) {
-      setQuotaData(null);
-      return;
-    }
-
     const fetchQuota = () => {
       void ipcBridge.application.getModelQuota
         .invoke({
@@ -167,19 +186,77 @@ export function useActiveModelUsage(): ActiveModelUsage {
       cancelled = true;
       clearInterval(interval);
     };
-  }, [
-    conversation?.id,
-    conversation?.type,
-    extra?.backend,
-    extra?.agent_name,
-    extra?.cli_path,
-    modelName,
-    conversations.length,
-    conversation,
-  ]);
+  }, [extra?.cli_path]);
+
+  const quotaEntries = useMemo<ModelQuotaEntry[]>(() => {
+    if (!quotaData || !Array.isArray(quotaData.groups) || quotaData.groups.length === 0) {
+      return [];
+    }
+
+    const lowerModel = modelName.toLowerCase();
+
+    return quotaData.groups.map((group, idx) => {
+      const fiveBucket = group.buckets.find(
+        (b) => b.window === '5h' || b.id.includes('5h') || b.name.toLowerCase().includes('five hour')
+      );
+      const weeklyBucket = group.buckets.find(
+        (b) => b.window === 'weekly' || b.id.includes('weekly') || b.name.toLowerCase().includes('weekly')
+      );
+
+      const fiveHourPct =
+        fiveBucket && typeof fiveBucket.remainingFraction === 'number'
+          ? Math.round(fiveBucket.remainingFraction * 1000) / 10
+          : undefined;
+
+      const weeklyPct =
+        weeklyBucket && typeof weeklyBucket.remainingFraction === 'number'
+          ? Math.round(weeklyBucket.remainingFraction * 1000) / 10
+          : undefined;
+
+      const primaryPct = fiveHourPct ?? weeklyPct ?? 100;
+      const minPct = Math.min(fiveHourPct ?? 100, weeklyPct ?? 100);
+      const isDanger = minPct <= 10;
+      const isWarning = minPct <= 30;
+
+      const lowerGroup = group.name.toLowerCase();
+      let isActive = false;
+      if (lowerGroup.includes('gemini') && lowerModel.includes('gemini')) {
+        isActive = true;
+      } else if (
+        (lowerGroup.includes('claude') || lowerGroup.includes('gpt')) &&
+        (lowerModel.includes('claude') ||
+          lowerModel.includes('gpt') ||
+          lowerModel.includes('sonnet') ||
+          lowerModel.includes('opus'))
+      ) {
+        isActive = true;
+      }
+
+      const displayName = formatQuotaDisplayName(group.name, group.agentName);
+
+      return {
+        key: `quota-group-${idx}-${group.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}`,
+        name: displayName,
+        groupName: group.name,
+        agentName: group.agentName,
+        fiveHourPct,
+        weeklyPct,
+        fiveHourResetTime: fiveBucket?.resetTime,
+        weeklyResetTime: weeklyBucket?.resetTime,
+        primaryPct,
+        isWarning,
+        isDanger,
+        isActive,
+      };
+    });
+  }, [quotaData, modelName]);
 
   const activeGroup = useMemo(() => {
     if (!quotaData || quotaData.groups.length === 0) return null;
+    const activeEntry = quotaEntries.find((e) => e.isActive);
+    if (activeEntry) {
+      return quotaData.groups.find((g) => g.name === activeEntry.groupName) || quotaData.groups[0];
+    }
     const lower = modelName.toLowerCase();
     if (lower.includes('claude') || lower.includes('gpt')) {
       return (
@@ -188,7 +265,7 @@ export function useActiveModelUsage(): ActiveModelUsage {
       );
     }
     return quotaData.groups.find((g) => g.name.toLowerCase().includes('gemini')) || quotaData.groups[0];
-  }, [quotaData, modelName]);
+  }, [quotaData, quotaEntries, modelName]);
 
   const primaryBucket = useMemo(() => {
     if (!activeGroup || activeGroup.buckets.length === 0) return null;
@@ -204,12 +281,13 @@ export function useActiveModelUsage(): ActiveModelUsage {
   let isWarning = false;
   let isDanger = false;
 
-  if (primaryBucket) {
+  if (quotaEntries.length > 0) {
     quotaType = 'account_quota';
     hasLimit = true;
-    percentage = Math.round(primaryBucket.remainingFraction * 1000) / 10;
-    isWarning = percentage <= 30;
-    isDanger = percentage <= 10;
+    const activeEntry = quotaEntries.find((e) => e.isActive) || quotaEntries[0];
+    percentage = activeEntry.primaryPct;
+    isWarning = activeEntry.isWarning;
+    isDanger = activeEntry.isDanger;
   } else if (contextLimit > 0) {
     quotaType = 'context_window';
     hasLimit = true;
@@ -230,6 +308,7 @@ export function useActiveModelUsage(): ActiveModelUsage {
     cost: liveUsage?.cost,
     breakdown: liveUsage?.breakdown,
     quotaData,
+    quotaEntries,
     activeGroup,
     primaryBucket,
     quotaType,

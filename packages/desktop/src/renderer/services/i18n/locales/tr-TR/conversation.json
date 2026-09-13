@@ -542,6 +542,9 @@
     "resetsNow": "şimdi sıfırlanıyor",
     "fiveHourLimit": "5 Saatlik Limit",
     "weeklyLimit": "Haftalık Limit",
+    "weeklyShort": "Hafta",
+    "quotaDualSummary": "5s: {{fiveHour}} • {{weeklyLabel}}: {{weekly}}",
+    "active": "Aktif",
     "sessionUsage": "Oturum Kullanımı"
   },
   "skill_generator": {

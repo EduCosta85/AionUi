@@ -557,6 +557,9 @@
     "resetsNow": "اکنون بازنشانی می‌شود",
     "fiveHourLimit": "محدودیت ۵ ساعته",
     "weeklyLimit": "محدودیت هفتگی",
+    "weeklyShort": "هفته",
+    "quotaDualSummary": "۵ساعته: {{fiveHour}} • {{weeklyLabel}}: {{weekly}}",
+    "active": "فعال",
     "sessionUsage": "میزان استفاده در این نشست"
   },
   "skill_generator": {

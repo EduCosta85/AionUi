@@ -557,6 +557,9 @@
     "resetsNow": "今すぐリセット",
     "fiveHourLimit": "5時間制限",
     "weeklyLimit": "週間制限",
+    "weeklyShort": "週",
+    "quotaDualSummary": "5h: {{fiveHour}} • {{weeklyLabel}}: {{weekly}}",
+    "active": "アクティブ",
     "sessionUsage": "セッション使用量"
   },
   "skill_generator": {

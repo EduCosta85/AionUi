@@ -557,6 +557,9 @@
     "resetsNow": "即將重置",
     "fiveHourLimit": "5小時限制",
     "weeklyLimit": "每週限制",
+    "weeklyShort": "週",
+    "quotaDualSummary": "5h: {{fiveHour}} • {{weeklyLabel}}: {{weekly}}",
+    "active": "使用中",
     "sessionUsage": "對話用量"
   },
   "skill_generator": {

@@ -22,16 +22,21 @@ vi.mock('react-router-dom', () => ({
 
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
-    t: (key: string, fallbackOrOptions?: string | Record<string, unknown>, options?: Record<string, unknown>) => {
-      if (typeof fallbackOrOptions === 'string') {
-        let res = fallbackOrOptions;
-        const opts = (typeof options === 'object' ? options : {}) as Record<string, unknown>;
-        for (const [k, v] of Object.entries(opts)) {
-          res = res.replace(new RegExp(`{{${k}}}`, 'g'), String(v));
-        }
-        return res;
+    t: (key: string, fallbackOrOptions?: string | Record<string, unknown>, maybeOptions?: Record<string, unknown>) => {
+      let res =
+        typeof fallbackOrOptions === 'string'
+          ? fallbackOrOptions
+          : typeof fallbackOrOptions === 'object' && typeof fallbackOrOptions.defaultValue === 'string'
+            ? fallbackOrOptions.defaultValue
+            : key;
+      const opts = (typeof fallbackOrOptions === 'object' ? fallbackOrOptions : maybeOptions || {}) as Record<
+        string,
+        unknown
+      >;
+      for (const [k, v] of Object.entries(opts)) {
+        res = res.replace(new RegExp(`{{${k}}}`, 'g'), String(v));
       }
-      return key;
+      return res;
     },
     i18n: { language: 'en-US' },
   }),
@@ -230,16 +235,92 @@ describe('SiderModelUsage and useActiveModelUsage', () => {
     });
 
     expect(screen.getByText('48%')).toBeInTheDocument();
-    expect(screen.getByText('47.8% remaining (5h)')).toBeInTheDocument();
+    expect(screen.getByText('5h: 47.8% • Wk: 90.6%')).toBeInTheDocument();
 
     const popover = screen.getByTestId('sider-model-usage-popover');
     expect(popover).toBeInTheDocument();
     expect(screen.getByText('Model Quota')).toBeInTheDocument();
-    expect(screen.getByText('Gemini Models')).toBeInTheDocument();
+    expect(screen.getAllByText('Antigravity (Gemini)').length).toBeGreaterThan(0);
     expect(screen.getByText('5-Hour Limit')).toBeInTheDocument();
     expect(screen.getByText('Weekly Limit')).toBeInTheDocument();
     expect(screen.getByText('Session Usage')).toBeInTheDocument();
     expect(screen.getByText('7.8M')).toBeInTheDocument();
+  });
+
+  it('renders multiple quota entries with 5h and weekly percentages for both Gemini and Claude', async () => {
+    mockConversations[0] = {
+      id: 'conv-agy',
+      title: 'Antigravity Chat',
+      createTime: Date.now(),
+      updateTime: Date.now(),
+      status: 'idle',
+      type: 'antigravity',
+      extra: {
+        backend: 'antigravity',
+        agent_name: 'antigravity',
+        current_model_id: 'gemini-2.5-pro',
+      },
+    };
+    activeConversationId = 'conv-agy';
+
+    getModelQuotaInvokeMock.mockResolvedValueOnce({
+      success: true,
+      data: {
+        updatedAt: Date.now(),
+        groups: [
+          {
+            name: 'Gemini Models',
+            agentName: 'Antigravity',
+            buckets: [
+              {
+                id: 'gemini-5h',
+                name: 'Five Hour Limit Remaining',
+                window: '5h',
+                remainingFraction: 0.296,
+              },
+              {
+                id: 'gemini-weekly',
+                name: 'Weekly Limit Remaining',
+                window: 'weekly',
+                remainingFraction: 0.894,
+              },
+            ],
+          },
+          {
+            name: 'Claude and GPT models',
+            agentName: 'Antigravity',
+            buckets: [
+              {
+                id: '3p-5h',
+                name: 'Five Hour Limit Remaining',
+                window: '5h',
+                remainingFraction: 1.0,
+              },
+              {
+                id: '3p-weekly',
+                name: 'Weekly Limit Remaining',
+                window: 'weekly',
+                remainingFraction: 1.0,
+              },
+            ],
+          },
+        ],
+      },
+    });
+
+    render(<SiderModelUsage collapsed={false} />);
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(screen.getAllByText('Antigravity (Gemini)').length).toBeGreaterThan(0);
+    expect(screen.getByText('5h: 29.6% • Wk: 89.4%')).toBeInTheDocument();
+    expect(screen.getByText('30%')).toBeInTheDocument();
+
+    expect(screen.getAllByText('Antigravity (Claude)').length).toBeGreaterThan(0);
+    expect(screen.getByText('5h: 100.0% • Wk: 100.0%')).toBeInTheDocument();
+    expect(screen.getByText('100%')).toBeInTheDocument();
   });
 
   it('formats reset countdown properly', () => {

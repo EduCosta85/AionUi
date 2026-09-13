@@ -565,6 +565,9 @@
     "resetsNow": "скидається зараз",
     "fiveHourLimit": "Ліміт на 5 годин",
     "weeklyLimit": "Щотижневий ліміт",
+    "weeklyShort": "Тижд",
+    "quotaDualSummary": "5h: {{fiveHour}} • {{weeklyLabel}}: {{weekly}}",
+    "active": "Активний",
     "sessionUsage": "Використання за сесію"
   },
   "skill_generator": {

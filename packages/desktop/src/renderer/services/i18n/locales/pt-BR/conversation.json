@@ -563,6 +563,9 @@
     "resetsNow": "renovando agora",
     "fiveHourLimit": "Limite de 5 horas",
     "weeklyLimit": "Limite semanal",
+    "weeklyShort": "Sem",
+    "quotaDualSummary": "5h: {{fiveHour}} • {{weeklyLabel}}: {{weekly}}",
+    "active": "Ativo",
     "sessionUsage": "Uso da sessão"
   },
   "skill_generator": {
