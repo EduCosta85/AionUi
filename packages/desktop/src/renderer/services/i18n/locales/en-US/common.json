@@ -206,5 +206,6 @@
   "terminal": "Terminal",
   "runInTerminal": "Run in Terminal",
   "clearTerminal": "Clear Terminal",
-  "restartTerminal": "Restart Terminal"
+  "restartTerminal": "Restart Terminal",
+  "documentTitleWithName": "{{name}} - AionUi"
 }

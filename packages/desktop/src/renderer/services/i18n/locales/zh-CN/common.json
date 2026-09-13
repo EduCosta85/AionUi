@@ -206,5 +206,6 @@
   "terminal": "终端",
   "runInTerminal": "在终端运行",
   "clearTerminal": "清空终端",
-  "restartTerminal": "重启终端"
+  "restartTerminal": "重启终端",
+  "documentTitleWithName": "{{name}} - AionUi"
 }

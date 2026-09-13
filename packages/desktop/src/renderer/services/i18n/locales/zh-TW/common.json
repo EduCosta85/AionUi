@@ -206,5 +206,6 @@
   "terminal": "終端機",
   "runInTerminal": "在終端機執行",
   "clearTerminal": "清除終端機",
-  "restartTerminal": "重啟終端機"
+  "restartTerminal": "重啟終端機",
+  "documentTitleWithName": "{{name}} - AionUi"
 }

@@ -206,5 +206,6 @@
   "terminal": "ترمینال",
   "runInTerminal": "اجرا در ترمینال",
   "clearTerminal": "پاک کردن ترمینال",
-  "restartTerminal": "راه‌اندازی مجدد ترمینال"
+  "restartTerminal": "راه‌اندازی مجدد ترمینال",
+  "documentTitleWithName": "{{name}} - AionUi"
 }

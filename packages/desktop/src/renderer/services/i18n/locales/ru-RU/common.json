@@ -208,5 +208,6 @@
   "terminal": "Терминал",
   "runInTerminal": "Запустить в терминале",
   "clearTerminal": "Очистить терминал",
-  "restartTerminal": "Перезапустить терминал"
+  "restartTerminal": "Перезапустить терминал",
+  "documentTitleWithName": "{{name}} - AionUi"
 }

@@ -206,5 +206,6 @@
   "terminal": "터미널",
   "runInTerminal": "터미널에서 실행",
   "clearTerminal": "터미널 지우기",
-  "restartTerminal": "터미널 재시작"
+  "restartTerminal": "터미널 재시작",
+  "documentTitleWithName": "{{name}} - AionUi"
 }

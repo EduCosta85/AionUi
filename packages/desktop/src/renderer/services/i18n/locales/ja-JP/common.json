@@ -206,5 +206,6 @@
   "terminal": "ターミナル",
   "runInTerminal": "ターミナルで実行",
   "clearTerminal": "ターミナルをクリア",
-  "restartTerminal": "ターミナルを再起動"
+  "restartTerminal": "ターミナルを再起動",
+  "documentTitleWithName": "{{name}} - AionUi"
 }

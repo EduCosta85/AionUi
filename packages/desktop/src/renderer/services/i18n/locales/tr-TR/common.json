@@ -206,5 +206,6 @@
   "terminal": "Terminal",
   "runInTerminal": "Terminalde Çalıştır",
   "clearTerminal": "Terminali Temizle",
-  "restartTerminal": "Terminali Yeniden Başlat"
+  "restartTerminal": "Terminali Yeniden Başlat",
+  "documentTitleWithName": "{{name}} - AionUi"
 }

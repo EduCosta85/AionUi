@@ -281,6 +281,7 @@ export type I18nKey =
   | 'common.delete'
   | 'common.deleteFailed'
   | 'common.deleteSuccess'
+  | 'common.documentTitleWithName'
   | 'common.download'
   | 'common.edit'
   | 'common.error'
