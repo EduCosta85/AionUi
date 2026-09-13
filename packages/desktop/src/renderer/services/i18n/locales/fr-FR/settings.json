@@ -1418,5 +1418,9 @@
   "speechToTextSourceLocal": "Local (Hors ligne - Parakeet TDT)",
   "speechToTextDownloadModel": "Télécharger le modèle (~670 Mo)",
   "speechToTextDownloadingModel": "Téléchargement du modèle...",
-  "speechToTextLocalModelReady": "Modèle prêt pour la dictée hors ligne"
+  "speechToTextLocalModelReady": "Modèle prêt pour la dictée hors ligne",
+  "sendKey": "Send Key",
+  "sendKeyDesc": "Choose which key combination sends the message.",
+  "sendKeyEnter": "Enter",
+  "sendKeyModifier": "Cmd/Ctrl + Enter"
 }

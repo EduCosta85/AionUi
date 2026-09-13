@@ -1420,5 +1420,9 @@
   "speechToTextSourceLocal": "本地（離線 - Parakeet TDT）",
   "speechToTextDownloadModel": "下載模型 (~670 MB)",
   "speechToTextDownloadingModel": "正在下載模型...",
-  "speechToTextLocalModelReady": "模型已準備就緒，支援離線語音識別"
+  "speechToTextLocalModelReady": "模型已準備就緒，支援離線語音識別",
+  "sendKey": "發送按鍵",
+  "sendKeyDesc": "選擇發送訊息的快捷鍵組合。",
+  "sendKeyEnter": "Enter",
+  "sendKeyModifier": "Cmd/Ctrl + Enter"
 }

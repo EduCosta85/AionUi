@@ -1421,5 +1421,9 @@
   "speechToTextSourceLocal": "Local (Offline - Parakeet TDT)",
   "speechToTextDownloadModel": "Baixar Modelo (~670 MB)",
   "speechToTextDownloadingModel": "Baixando modelo...",
-  "speechToTextLocalModelReady": "Modelo pronto para uso offline"
+  "speechToTextLocalModelReady": "Modelo pronto para uso offline",
+  "sendKey": "Tecla de Envio",
+  "sendKeyDesc": "Escolha qual combinação de teclas envia a mensagem.",
+  "sendKeyEnter": "Enter",
+  "sendKeyModifier": "Cmd/Ctrl + Enter"
 }

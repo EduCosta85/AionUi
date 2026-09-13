@@ -1420,5 +1420,9 @@
   "speechToTextSourceLocal": "로컬 (오프라인 - Parakeet TDT)",
   "speechToTextDownloadModel": "모델 다운로드 (~670 MB)",
   "speechToTextDownloadingModel": "모델 다운로드 중...",
-  "speechToTextLocalModelReady": "오프라인 음성 인식이 준비되었습니다"
+  "speechToTextLocalModelReady": "오프라인 음성 인식이 준비되었습니다",
+  "sendKey": "Send Key",
+  "sendKeyDesc": "Choose which key combination sends the message.",
+  "sendKeyEnter": "Enter",
+  "sendKeyModifier": "Cmd/Ctrl + Enter"
 }

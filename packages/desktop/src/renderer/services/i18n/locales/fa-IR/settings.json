@@ -1418,5 +1418,9 @@
   "speechToTextSourceLocal": "محلی (آفلاین - Parakeet TDT)",
   "speechToTextDownloadModel": "دانلود مدل (~670 مگابایت)",
   "speechToTextDownloadingModel": "در حال دانلود مدل...",
-  "speechToTextLocalModelReady": "مدل برای دیکته آفلاین آماده است"
+  "speechToTextLocalModelReady": "مدل برای دیکته آفلاین آماده است",
+  "sendKey": "Send Key",
+  "sendKeyDesc": "Choose which key combination sends the message.",
+  "sendKeyEnter": "Enter",
+  "sendKeyModifier": "Cmd/Ctrl + Enter"
 }

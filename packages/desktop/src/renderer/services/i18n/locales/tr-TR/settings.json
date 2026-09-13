@@ -1418,5 +1418,9 @@
   "speechToTextSourceLocal": "Yerel (Çevrimdışı - Parakeet TDT)",
   "speechToTextDownloadModel": "Modeli İndir (~670 MB)",
   "speechToTextDownloadingModel": "Model indiriliyor...",
-  "speechToTextLocalModelReady": "Model çevrimdışı dikte için hazır"
+  "speechToTextLocalModelReady": "Model çevrimdışı dikte için hazır",
+  "sendKey": "Send Key",
+  "sendKeyDesc": "Choose which key combination sends the message.",
+  "sendKeyEnter": "Enter",
+  "sendKeyModifier": "Cmd/Ctrl + Enter"
 }

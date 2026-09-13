@@ -1433,5 +1433,9 @@
   "speechToTextSourceLocal": "Локально (Офлайн - Parakeet TDT)",
   "speechToTextDownloadModel": "Завантажити модель (~670 МБ)",
   "speechToTextDownloadingModel": "Завантаження моделі...",
-  "speechToTextLocalModelReady": "Модель готова до офлайн-диктування"
+  "speechToTextLocalModelReady": "Модель готова до офлайн-диктування",
+  "sendKey": "Send Key",
+  "sendKeyDesc": "Choose which key combination sends the message.",
+  "sendKeyEnter": "Enter",
+  "sendKeyModifier": "Cmd/Ctrl + Enter"
 }
