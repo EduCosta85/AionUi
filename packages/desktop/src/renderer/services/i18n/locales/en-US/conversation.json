@@ -544,7 +544,9 @@
     "output": "Output",
     "thought": "Thinking",
     "cachedRead": "Cache read",
-    "cachedWrite": "Cache write"
+    "cachedWrite": "Cache write",
+    "modelUsage": "Model usage",
+    "noUsage": "0 tokens"
   },
   "skill_generator": {
     "title": "Generate Skill/Rule",

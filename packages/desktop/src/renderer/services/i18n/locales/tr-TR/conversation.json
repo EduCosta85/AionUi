@@ -529,7 +529,9 @@
     "output": "Çıktı",
     "thought": "Düşünme",
     "cachedRead": "Önbellek okuma",
-    "cachedWrite": "Önbellek yazma"
+    "cachedWrite": "Önbellek yazma",
+    "modelUsage": "Model kullanımı",
+    "noUsage": "0 belirteç"
   },
   "skill_generator": {
     "title": "Yetenek/Kural Oluştur",

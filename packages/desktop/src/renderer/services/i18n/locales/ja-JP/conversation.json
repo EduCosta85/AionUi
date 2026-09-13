@@ -544,7 +544,9 @@
     "output": "出力",
     "thought": "思考",
     "cachedRead": "キャッシュ読み取り",
-    "cachedWrite": "キャッシュ書き込み"
+    "cachedWrite": "キャッシュ書き込み",
+    "modelUsage": "モデル使用量",
+    "noUsage": "0 トークン"
   },
   "skill_generator": {
     "title": "Generate Skill/Rule",
