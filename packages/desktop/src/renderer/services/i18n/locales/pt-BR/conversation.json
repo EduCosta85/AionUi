@@ -555,7 +555,15 @@
     "noUsage": "0 tokens",
     "quota": "Cota",
     "quotaUsed": "{{percentage}} de cota",
-    "quotaSummary": "{{percentage}} de cota • {{tokens}}"
+    "quotaSummary": "{{percentage}} de cota • {{tokens}}",
+    "modelQuota": "Cota do modelo",
+    "remaining": "restante",
+    "quotaRemainingSummary": "{{percentage}} restante ({{window}})",
+    "resetsIn": "renova em {{time}}",
+    "resetsNow": "renovando agora",
+    "fiveHourLimit": "Limite de 5 horas",
+    "weeklyLimit": "Limite semanal",
+    "sessionUsage": "Uso da sessão"
   },
   "skill_generator": {
     "title": "Gerar Habilidade/Regra",

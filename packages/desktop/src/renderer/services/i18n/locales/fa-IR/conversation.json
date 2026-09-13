@@ -549,7 +549,15 @@
     "noUsage": "0 توکن",
     "quota": "سهمیه",
     "quotaUsed": "{{percentage}} سهمیه",
-    "quotaSummary": "{{percentage}} سهمیه • {{tokens}}"
+    "quotaSummary": "{{percentage}} سهمیه • {{tokens}}",
+    "modelQuota": "سهمیه مدل",
+    "remaining": "باقی‌مانده",
+    "quotaRemainingSummary": "{{percentage}} باقی‌مانده ({{window}})",
+    "resetsIn": "بازنشانی در {{time}}",
+    "resetsNow": "اکنون بازنشانی می‌شود",
+    "fiveHourLimit": "محدودیت ۵ ساعته",
+    "weeklyLimit": "محدودیت هفتگی",
+    "sessionUsage": "میزان استفاده در این نشست"
   },
   "skill_generator": {
     "title": "ساخت مهارت/قانون",

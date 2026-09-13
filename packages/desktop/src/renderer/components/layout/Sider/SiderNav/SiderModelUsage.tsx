@@ -10,6 +10,7 @@ import { useNavigate } from 'react-router-dom';
 import { Popover } from '@arco-design/web-react';
 import { Brain, SettingTwo } from '@icon-park/react';
 import classNames from 'classnames';
+import type { TFunction } from 'i18next';
 import {
   formatCostAmount,
   formatPercentage,
@@ -17,6 +18,32 @@ import {
 } from '@/renderer/components/agent/ContextUsageIndicator';
 import { useActiveModelUsage } from '@/renderer/hooks/agent/useActiveModelUsage';
 import type { SiderTooltipProps } from '@/renderer/utils/ui/siderTooltip';
+
+export function formatResetCountdown(resetTime: string, t: TFunction): string {
+  const target = new Date(resetTime).getTime();
+  const now = Date.now();
+  const diffMs = target - now;
+
+  if (isNaN(target) || diffMs <= 0) {
+    return t('conversation.contextUsage.resetsNow', 'resets now');
+  }
+
+  const diffMinutes = Math.floor(diffMs / (60 * 1000));
+  const days = Math.floor(diffMinutes / (24 * 60));
+  const hours = Math.floor((diffMinutes % (24 * 60)) / 60);
+  const minutes = diffMinutes % 60;
+
+  let timeStr = '';
+  if (days > 0) {
+    timeStr = hours > 0 ? `${days}d ${hours}h` : `${days}d`;
+  } else if (hours > 0) {
+    timeStr = minutes > 0 ? `${hours}h ${minutes}m` : `${hours}h`;
+  } else {
+    timeStr = `${Math.max(1, minutes)}m`;
+  }
+
+  return t('conversation.contextUsage.resetsIn', { defaultValue: 'resets in {{time}}', time: timeStr });
+}
 
 interface SiderModelUsageProps {
   collapsed?: boolean;
@@ -44,30 +71,42 @@ const SiderModelUsage: React.FC<SiderModelUsageProps> = ({
     isDanger,
     cost,
     breakdown,
+    quotaData,
+    primaryBucket,
+    quotaType,
   } = useActiveModelUsage();
 
   const displayModelName = modelName || t('common.defaultModel', 'Default Model');
 
   const displayTotal = useMemo(() => formatTokenCount(totalTokens, locale), [totalTokens, locale]);
   const displayLimit = useMemo(
-    () => (hasLimit ? formatTokenCount(contextLimit, locale, true) : '0'),
-    [hasLimit, contextLimit, locale]
+    () => (contextLimit > 0 ? formatTokenCount(contextLimit, locale, true) : '0'),
+    [contextLimit, locale]
   );
 
   const formattedPct = useMemo(() => formatPercentage(percentage, locale), [percentage, locale]);
 
   const usageSubtitle = useMemo(() => {
-    if (hasLimit) {
+    if (quotaType === 'account_quota' && primaryBucket) {
+      const windowLabel = primaryBucket.window === '5h' ? '5h' : t('conversation.contextUsage.weeklyLimit', 'Weekly');
+      return t('conversation.contextUsage.quotaRemainingSummary', '{{percentage}} remaining ({{window}})', {
+        percentage: formattedPct,
+        window: windowLabel,
+      });
+    }
+
+    if (quotaType === 'context_window' && hasLimit) {
       return t('conversation.contextUsage.quotaSummary', '{{percentage}} quota • {{tokens}}', {
         percentage: formattedPct,
         tokens: `${displayTotal} / ${displayLimit}`,
       });
     }
+
     if (totalTokens <= 0) {
       return t('conversation.contextUsage.noUsage', '0 tokens');
     }
     return t('conversation.contextUsage.tokensUsed', '{{tokens}} tokens', { tokens: displayTotal });
-  }, [hasLimit, totalTokens, formattedPct, displayTotal, displayLimit, t]);
+  }, [quotaType, primaryBucket, hasLimit, totalTokens, formattedPct, displayTotal, displayLimit, t]);
 
   const handleNavigateToModelSettings = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -125,7 +164,7 @@ const SiderModelUsage: React.FC<SiderModelUsageProps> = ({
 
   const popoverContent = (
     <div
-      className='p-10px min-w-220px max-w-280px flex flex-col gap-8px select-none'
+      className='p-10px min-w-240px max-w-300px flex flex-col gap-8px select-none'
       data-testid='sider-model-usage-popover'
     >
       {/* Header */}
@@ -143,8 +182,67 @@ const SiderModelUsage: React.FC<SiderModelUsageProps> = ({
         )}
       </div>
 
-      {/* Progress bar or tokens used */}
-      {hasLimit ? (
+      {/* Real Account Quota (e.g. from agy /usage) */}
+      {quotaData && quotaData.groups.length > 0 ? (
+        <div className='flex flex-col gap-6px'>
+          <div className='text-11px font-semibold uppercase tracking-wider text-t-secondary'>
+            {t('conversation.contextUsage.modelQuota', 'Model Quota')}
+          </div>
+          {quotaData.groups.map((group, groupIdx) => (
+            <div key={groupIdx} className='flex flex-col gap-4px'>
+              <div className='text-12px font-medium text-t-primary'>{group.name}</div>
+              {group.buckets.map((bucket, bucketIdx) => {
+                const bucketPct = Math.round(bucket.remainingFraction * 1000) / 10;
+                const bucketPctFormatted = formatPercentage(bucketPct, locale);
+                const bucketIsDanger = bucketPct <= 10;
+                const bucketIsWarning = bucketPct <= 30;
+                const bucketColor = bucketIsDanger
+                  ? 'rgb(var(--danger-6))'
+                  : bucketIsWarning
+                    ? 'rgb(var(--warning-6))'
+                    : 'rgb(var(--primary-6))';
+                const bucketLabel =
+                  bucket.window === '5h'
+                    ? t('conversation.contextUsage.fiveHourLimit', '5-Hour Limit')
+                    : bucket.window === 'weekly'
+                      ? t('conversation.contextUsage.weeklyLimit', 'Weekly Limit')
+                      : bucket.name;
+
+                return (
+                  <div key={bucketIdx} className='flex flex-col gap-2px'>
+                    <div className='flex items-center justify-between text-11px'>
+                      <span className='text-t-secondary'>{bucketLabel}</span>
+                      <span
+                        className={classNames(
+                          'font-mono font-medium',
+                          bucketIsDanger ? 'text-danger-6' : bucketIsWarning ? 'text-warning-6' : 'text-t-primary'
+                        )}
+                      >
+                        {bucketPctFormatted} {t('conversation.contextUsage.remaining', 'remaining')}
+                      </span>
+                    </div>
+                    <div className='w-full h-5px rd-3px bg-fill-3 overflow-hidden'>
+                      <div
+                        className='h-full rd-3px transition-all duration-300'
+                        style={{
+                          width: `${Math.min(bucketPct, 100)}%`,
+                          backgroundColor: bucketColor,
+                        }}
+                      />
+                    </div>
+                    {bucket.resetTime && (
+                      <div className='text-10px text-t-tertiary flex justify-end'>
+                        {formatResetCountdown(bucket.resetTime, t)}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          ))}
+        </div>
+      ) : hasLimit && quotaType === 'context_window' ? (
+        /* Standard Context Window Quota */
         <div className='flex flex-col gap-4px'>
           <div className='flex items-center justify-between text-12px'>
             <span className='text-t-secondary'>{t('conversation.contextUsage.quota', 'Quota')}</span>
@@ -167,34 +265,37 @@ const SiderModelUsage: React.FC<SiderModelUsageProps> = ({
             />
           </div>
         </div>
-      ) : (
-        <div className='flex items-center justify-between text-12px'>
-          <span className='text-t-secondary'>
-            {t('conversation.contextUsage.tokensUsed', 'Tokens used', { tokens: '' }).trim()}
+      ) : null}
+
+      {/* Session Tokens Section */}
+      <div className='flex flex-col gap-4px pt-4px border-t border-solid border-[var(--color-border-2)]'>
+        <div className='flex items-center justify-between text-11px'>
+          <span className='font-semibold uppercase tracking-wider text-t-secondary'>
+            {t('conversation.contextUsage.sessionUsage', 'Session Usage')}
           </span>
           <span className='font-mono font-medium text-t-primary'>{displayTotal}</span>
         </div>
-      )}
 
-      {/* Breakdown Details */}
-      {breakdownParts.length > 0 && (
-        <div className='flex flex-col gap-4px pt-4px border-t border-dashed border-[var(--color-border-2)] text-11px text-t-secondary'>
-          {breakdownParts.map((part, index) => (
-            <div key={index} className='flex items-center justify-between'>
-              <span>{part.label}</span>
-              <span className='font-mono text-t-primary'>{part.value}</span>
-            </div>
-          ))}
-        </div>
-      )}
+        {/* Breakdown Details */}
+        {breakdownParts.length > 0 && (
+          <div className='flex flex-col gap-2px pt-2px text-11px text-t-secondary'>
+            {breakdownParts.map((part, index) => (
+              <div key={index} className='flex items-center justify-between'>
+                <span>{part.label}</span>
+                <span className='font-mono text-t-primary'>{part.value}</span>
+              </div>
+            ))}
+          </div>
+        )}
 
-      {/* Session Cost */}
-      {cost && (
-        <div className='flex items-center justify-between text-11px text-t-secondary pt-4px border-t border-dashed border-[var(--color-border-2)]'>
-          <span>{t('conversation.contextUsage.sessionCost', 'Session cost')}</span>
-          <span className='font-mono font-medium text-t-primary'>≈ {formatCostAmount(cost, locale)}</span>
-        </div>
-      )}
+        {/* Session Cost */}
+        {cost && (
+          <div className='flex items-center justify-between text-11px text-t-secondary pt-2px border-t border-dashed border-[var(--color-border-2)]'>
+            <span>{t('conversation.contextUsage.sessionCost', 'Session cost')}</span>
+            <span className='font-mono font-medium text-t-primary'>≈ {formatCostAmount(cost, locale)}</span>
+          </div>
+        )}
+      </div>
 
       {/* Footer Action: Settings Link */}
       <div className='pt-6px border-t border-solid border-[var(--color-border-2)] flex justify-end'>
@@ -271,38 +372,31 @@ const SiderModelUsage: React.FC<SiderModelUsageProps> = ({
                 />
               </svg>
             ) : (
-              <Brain
-                theme='outline'
-                size='16'
-                fill='currentColor'
-                className='text-t-secondary group-hover:text-primary transition-colors'
-              />
+              <Brain theme='outline' size='18' fill='currentColor' className='text-primary' />
             )}
           </span>
 
-          {/* Center Text: Model Name & Usage Subtitle */}
-          <div className='flex-1 min-w-0 flex flex-col justify-center overflow-hidden'>
-            <span className='text-13px font-medium leading-16px text-t-primary truncate' title={displayModelName}>
-              {displayModelName}
-            </span>
-            <span className='text-11px leading-14px text-t-secondary truncate'>{usageSubtitle}</span>
-          </div>
-
-          {/* Right percentage badge if limit is known */}
-          {hasLimit && (
-            <span
-              className={classNames(
-                'ms-4px px-5px py-1px text-10px font-mono font-medium rd-4px shrink-0',
-                isDanger
-                  ? 'bg-danger-1 text-danger-6'
-                  : isWarning
-                    ? 'bg-warning-1 text-warning-6'
-                    : 'bg-fill-2 text-t-secondary'
+          {/* Model Name & Quota Info */}
+          <div className='flex flex-col min-w-0 flex-1 justify-center leading-tight'>
+            <div className='flex items-center justify-between gap-4px min-w-0'>
+              <span className='text-12px font-medium text-t-primary truncate' title={displayModelName}>
+                {displayModelName}
+              </span>
+              {hasLimit && (
+                <span
+                  className={classNames(
+                    'text-10px font-mono font-medium shrink-0',
+                    isDanger ? 'text-danger-6' : isWarning ? 'text-warning-6' : 'text-t-secondary'
+                  )}
+                >
+                  {Math.round(percentage)}%
+                </span>
               )}
-            >
-              {Math.round(percentage)}%
+            </div>
+            <span className='text-10px text-t-tertiary truncate' title={usageSubtitle}>
+              {usageSubtitle}
             </span>
-          )}
+          </div>
         </div>
       )}
     </Popover>

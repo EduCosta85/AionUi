@@ -549,7 +549,15 @@
     "noUsage": "0개 토큰",
     "quota": "할당량",
     "quotaUsed": "{{percentage}} 할당량",
-    "quotaSummary": "{{percentage}} 할당량 • {{tokens}}"
+    "quotaSummary": "{{percentage}} 할당량 • {{tokens}}",
+    "modelQuota": "모델 할당량",
+    "remaining": "남음",
+    "quotaRemainingSummary": "{{percentage}} 남음 ({{window}})",
+    "resetsIn": "{{time}} 후 재설정",
+    "resetsNow": "지금 재설정",
+    "fiveHourLimit": "5시간 한도",
+    "weeklyLimit": "주간 한도",
+    "sessionUsage": "세션 사용량"
   },
   "skill_generator": {
     "title": "스킬/규칙 생성",

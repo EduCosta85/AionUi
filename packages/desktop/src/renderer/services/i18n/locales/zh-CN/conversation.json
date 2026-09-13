@@ -549,7 +549,15 @@
     "noUsage": "0 个 token",
     "quota": "额度",
     "quotaUsed": "{{percentage}} 额度",
-    "quotaSummary": "{{percentage}} 额度 • {{tokens}}"
+    "quotaSummary": "{{percentage}} 额度 • {{tokens}}",
+    "modelQuota": "模型配额",
+    "remaining": "剩余",
+    "quotaRemainingSummary": "剩余 {{percentage}}（{{window}}）",
+    "resetsIn": "{{time}} 后重置",
+    "resetsNow": "即将重置",
+    "fiveHourLimit": "5小时限制",
+    "weeklyLimit": "每周限制",
+    "sessionUsage": "会话用量"
   },
   "skill_generator": {
     "title": "生成 Skill/规则",

@@ -5,7 +5,7 @@
  */
 
 import { ipcBridge } from '@/common';
-import type { IResponseMessage } from '@/common/adapter/ipcBridge';
+import type { IResponseMessage, ModelQuotaBucket, ModelQuotaData, ModelQuotaGroup } from '@/common/adapter/ipcBridge';
 import type { TokenUsageBreakdown, TokenUsageCost, TokenUsageData } from '@/common/config/storage';
 import { useConversationHistoryContext } from '@/renderer/hooks/context/ConversationHistoryContext';
 import { useCurrentConversation } from '@/renderer/pages/conversation/explorer/currentConversationStore';
@@ -17,6 +17,7 @@ type ConversationUsageExtra = {
   current_model_id?: string;
   agent_name?: string;
   backend?: string;
+  cli_path?: string;
   last_token_usage?: TokenUsageData;
   last_context_limit?: number;
   codexModel?: string;
@@ -33,6 +34,10 @@ export type ActiveModelUsage = {
   isDanger: boolean;
   cost?: TokenUsageCost;
   breakdown?: TokenUsageBreakdown;
+  quotaData?: ModelQuotaData | null;
+  activeGroup?: ModelQuotaGroup | null;
+  primaryBucket?: ModelQuotaBucket | null;
+  quotaType?: 'account_quota' | 'context_window';
 };
 
 export function useActiveModelUsage(): ActiveModelUsage {
@@ -55,6 +60,7 @@ export function useActiveModelUsage(): ActiveModelUsage {
   const [liveUsage, setLiveUsage] = useState<TokenUsageData | null>(null);
   const [liveContextLimit, setLiveContextLimit] = useState<number>(0);
   const [liveModelId, setLiveModelId] = useState<string | null>(null);
+  const [quotaData, setQuotaData] = useState<ModelQuotaData | null>(null);
 
   // Sync with conversation data when conversation changes
   useEffect(() => {
@@ -111,25 +117,106 @@ export function useActiveModelUsage(): ActiveModelUsage {
     };
   }, [conversation?.id]);
 
+  const extra = conversation?.extra as ConversationUsageExtra | undefined;
+  const agentName =
+    extra?.agent_name || extra?.backend || (conversation?.type === 'antigravity' ? 'antigravity' : null);
+
   const modelName = useMemo(() => {
     if (liveModelId) return liveModelId;
-    const extra = conversation?.extra as ConversationUsageExtra | undefined;
     if (extra?.current_model_id) return extra.current_model_id;
     if (extra?.codexModel) return extra.codexModel;
     if (extra?.agent_name) return extra.agent_name;
     if (extra?.backend) return extra.backend;
+    if (conversation?.type === 'antigravity') return 'Antigravity';
     return '';
-  }, [conversation?.extra, liveModelId]);
+  }, [conversation?.extra, conversation?.type, extra, liveModelId]);
 
-  const extra = conversation?.extra as ConversationUsageExtra | undefined;
-  const agentName = extra?.agent_name || extra?.backend || null;
+  // Fetch quota data (e.g. from agy CLI) for Antigravity or general quota providers
+  useEffect(() => {
+    let cancelled = false;
+
+    const isAntigravity =
+      conversation?.type === 'antigravity' ||
+      extra?.backend === 'antigravity' ||
+      extra?.agent_name?.toLowerCase().includes('antigravity') ||
+      extra?.agent_name?.toLowerCase().includes('agy') ||
+      modelName.toLowerCase().includes('antigravity');
+
+    if (!isAntigravity && conversations.length > 0 && conversation) {
+      setQuotaData(null);
+      return;
+    }
+
+    const fetchQuota = () => {
+      void ipcBridge.application.getModelQuota
+        .invoke({
+          agentName: 'antigravity',
+          cliPath: extra?.cli_path,
+        })
+        .then((res) => {
+          if (cancelled || !res || !res.success || !res.data) return;
+          setQuotaData(res.data);
+        })
+        .catch(() => {});
+    };
+
+    fetchQuota();
+    const interval = setInterval(fetchQuota, 30_000);
+
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, [
+    conversation?.id,
+    conversation?.type,
+    extra?.backend,
+    extra?.agent_name,
+    extra?.cli_path,
+    modelName,
+    conversations.length,
+    conversation,
+  ]);
+
+  const activeGroup = useMemo(() => {
+    if (!quotaData || quotaData.groups.length === 0) return null;
+    const lower = modelName.toLowerCase();
+    if (lower.includes('claude') || lower.includes('gpt')) {
+      return (
+        quotaData.groups.find((g) => g.name.toLowerCase().includes('claude') || g.name.toLowerCase().includes('gpt')) ||
+        quotaData.groups[0]
+      );
+    }
+    return quotaData.groups.find((g) => g.name.toLowerCase().includes('gemini')) || quotaData.groups[0];
+  }, [quotaData, modelName]);
+
+  const primaryBucket = useMemo(() => {
+    if (!activeGroup || activeGroup.buckets.length === 0) return null;
+    return activeGroup.buckets.find((b) => b.window === '5h' || b.id.includes('5h')) || activeGroup.buckets[0];
+  }, [activeGroup]);
 
   const totalTokens = liveUsage?.total_tokens ?? 0;
-  const contextLimit = resolveModelContextLimit(modelName, liveContextLimit);
-  const hasLimit = contextLimit > 0;
-  const percentage = hasLimit ? (totalTokens / contextLimit) * 100 : 0;
-  const isWarning = percentage > 70;
-  const isDanger = percentage > 90;
+  const contextLimit = liveContextLimit > 0 ? liveContextLimit : 0;
+
+  let quotaType: 'account_quota' | 'context_window' | undefined;
+  let percentage = 0;
+  let hasLimit = false;
+  let isWarning = false;
+  let isDanger = false;
+
+  if (primaryBucket) {
+    quotaType = 'account_quota';
+    hasLimit = true;
+    percentage = Math.round(primaryBucket.remainingFraction * 1000) / 10;
+    isWarning = percentage <= 30;
+    isDanger = percentage <= 10;
+  } else if (contextLimit > 0) {
+    quotaType = 'context_window';
+    hasLimit = true;
+    percentage = Math.min(100, Math.round((totalTokens / contextLimit) * 1000) / 10);
+    isWarning = percentage > 70;
+    isDanger = percentage > 90;
+  }
 
   return {
     modelName,
@@ -142,12 +229,16 @@ export function useActiveModelUsage(): ActiveModelUsage {
     isDanger,
     cost: liveUsage?.cost,
     breakdown: liveUsage?.breakdown,
+    quotaData,
+    activeGroup,
+    primaryBucket,
+    quotaType,
   };
 }
 
 /**
  * Resolves a model's context quota limit in tokens.
- * Uses the reported limit if positive, or falls back to known defaults based on the model family.
+ * Returns the reported limit if positive, or the known window size for the model family if recognized.
  */
 export function resolveModelContextLimit(modelName?: string, reportedLimit?: number): number {
   if (reportedLimit && reportedLimit > 0) return reportedLimit;

@@ -557,7 +557,15 @@
     "noUsage": "0 токенов",
     "quota": "Квота",
     "quotaUsed": "{{percentage}} квоты",
-    "quotaSummary": "{{percentage}} квоты • {{tokens}}"
+    "quotaSummary": "{{percentage}} квоты • {{tokens}}",
+    "modelQuota": "Квота модели",
+    "remaining": "осталось",
+    "quotaRemainingSummary": "{{percentage}} осталось ({{window}})",
+    "resetsIn": "сброс через {{time}}",
+    "resetsNow": "сбрасывается сейчас",
+    "fiveHourLimit": "Лимит на 5 часов",
+    "weeklyLimit": "Еженедельный лимит",
+    "sessionUsage": "Использование за сессию"
   },
   "skill_generator": {
     "title": "Создать навык/правило",

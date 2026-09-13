@@ -534,7 +534,15 @@
     "noUsage": "0 belirteç",
     "quota": "Kota",
     "quotaUsed": "{{percentage}} kota",
-    "quotaSummary": "{{percentage}} kota • {{tokens}}"
+    "quotaSummary": "{{percentage}} kota • {{tokens}}",
+    "modelQuota": "Model Kotası",
+    "remaining": "kaldı",
+    "quotaRemainingSummary": "%{{percentage}} kaldı ({{window}})",
+    "resetsIn": "{{time}} içinde sıfırlanır",
+    "resetsNow": "şimdi sıfırlanıyor",
+    "fiveHourLimit": "5 Saatlik Limit",
+    "weeklyLimit": "Haftalık Limit",
+    "sessionUsage": "Oturum Kullanımı"
   },
   "skill_generator": {
     "title": "Yetenek/Kural Oluştur",

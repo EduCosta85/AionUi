@@ -549,7 +549,15 @@
     "noUsage": "0 個 token",
     "quota": "額度",
     "quotaUsed": "{{percentage}} 額度",
-    "quotaSummary": "{{percentage}} 額度 • {{tokens}}"
+    "quotaSummary": "{{percentage}} 額度 • {{tokens}}",
+    "modelQuota": "模型配額",
+    "remaining": "剩餘",
+    "quotaRemainingSummary": "剩餘 {{percentage}}（{{window}}）",
+    "resetsIn": "{{time}} 後重置",
+    "resetsNow": "即將重置",
+    "fiveHourLimit": "5小時限制",
+    "weeklyLimit": "每週限制",
+    "sessionUsage": "對話用量"
   },
   "skill_generator": {
     "title": "Generate Skill/Rule",

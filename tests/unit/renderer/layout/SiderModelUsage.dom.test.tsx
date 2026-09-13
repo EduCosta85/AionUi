@@ -9,7 +9,7 @@ import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { IResponseMessage } from '@/common/adapter/ipcBridge';
 import type { ConversationRecord } from '@/common/config/storage';
-import SiderModelUsage from '@/renderer/components/layout/Sider/SiderNav/SiderModelUsage';
+import SiderModelUsage, { formatResetCountdown } from '@/renderer/components/layout/Sider/SiderNav/SiderModelUsage';
 import { resolveModelContextLimit, useActiveModelUsage } from '@/renderer/hooks/agent/useActiveModelUsage';
 
 const navigateMock = vi.fn();
@@ -50,6 +50,7 @@ vi.mock('@/renderer/hooks/context/ConversationHistoryContext', () => ({
 let streamCallback: ((msg: IResponseMessage) => void) | null = null;
 const unsubscribeMock = vi.fn();
 const getUsageInvokeMock = vi.fn();
+const getModelQuotaInvokeMock = vi.fn();
 
 vi.mock('@/common', () => ({
   ipcBridge: {
@@ -62,6 +63,11 @@ vi.mock('@/common', () => ({
           streamCallback = cb;
           return unsubscribeMock;
         },
+      },
+    },
+    application: {
+      getModelQuota: {
+        invoke: (...args: unknown[]) => getModelQuotaInvokeMock(...args),
       },
     },
   },
@@ -81,6 +87,7 @@ describe('SiderModelUsage and useActiveModelUsage', () => {
     navigateMock.mockClear();
     unsubscribeMock.mockClear();
     getUsageInvokeMock.mockReset().mockResolvedValue(null);
+    getModelQuotaInvokeMock.mockReset().mockResolvedValue({ success: false });
     streamCallback = null;
     currentPathname = '/conversation/conv-1';
     activeConversationId = 'conv-1';
@@ -166,8 +173,92 @@ describe('SiderModelUsage and useActiveModelUsage', () => {
     render(<SiderModelUsage collapsed={false} />);
 
     expect(screen.getAllByText('Default Model').length).toBeGreaterThan(0);
-    expect(screen.getAllByText('0.0% quota • 0 / 128K').length).toBeGreaterThan(0);
-    expect(screen.getByText('0%')).toBeInTheDocument();
+    expect(screen.getAllByText('0 tokens').length).toBeGreaterThan(0);
+  });
+
+  it('renders real quota breakdown and countdowns when quota is available (Antigravity mode)', async () => {
+    mockConversations[0] = {
+      id: 'conv-agy',
+      title: 'Antigravity Chat',
+      createTime: Date.now(),
+      updateTime: Date.now(),
+      status: 'idle',
+      type: 'antigravity',
+      extra: {
+        backend: 'antigravity',
+        agent_name: 'antigravity',
+        current_model_id: 'gemini-2.5-pro',
+        last_token_usage: {
+          total_tokens: 7800000,
+        },
+      },
+    };
+    activeConversationId = 'conv-agy';
+
+    getModelQuotaInvokeMock.mockResolvedValueOnce({
+      success: true,
+      data: {
+        updatedAt: Date.now(),
+        groups: [
+          {
+            name: 'Gemini Models',
+            buckets: [
+              {
+                id: 'gemini-5h',
+                name: 'Five Hour Limit Remaining',
+                window: '5h',
+                remainingFraction: 0.4775,
+                resetTime: new Date(Date.now() + 2 * 3600 * 1000 + 13 * 60 * 1000).toISOString(),
+              },
+              {
+                id: 'gemini-weekly',
+                name: 'Weekly Limit Remaining',
+                window: 'weekly',
+                remainingFraction: 0.906,
+                resetTime: new Date(Date.now() + 6 * 24 * 3600 * 1000).toISOString(),
+              },
+            ],
+          },
+        ],
+      },
+    });
+
+    render(<SiderModelUsage collapsed={false} />);
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(screen.getByText('48%')).toBeInTheDocument();
+    expect(screen.getByText('47.8% remaining (5h)')).toBeInTheDocument();
+
+    const popover = screen.getByTestId('sider-model-usage-popover');
+    expect(popover).toBeInTheDocument();
+    expect(screen.getByText('Model Quota')).toBeInTheDocument();
+    expect(screen.getByText('Gemini Models')).toBeInTheDocument();
+    expect(screen.getByText('5-Hour Limit')).toBeInTheDocument();
+    expect(screen.getByText('Weekly Limit')).toBeInTheDocument();
+    expect(screen.getByText('Session Usage')).toBeInTheDocument();
+    expect(screen.getByText('7.8M')).toBeInTheDocument();
+  });
+
+  it('formats reset countdown properly', () => {
+    const t = ((k: string, fbOrOpts?: string | Record<string, unknown>, maybeOpts?: Record<string, unknown>) => {
+      let text = typeof fbOrOpts === 'string' ? fbOrOpts : (fbOrOpts?.defaultValue as string) || k;
+      const opts = typeof fbOrOpts === 'object' ? fbOrOpts : maybeOpts;
+      if (opts) {
+        for (const [key, value] of Object.entries(opts)) {
+          text = text.replace(new RegExp(`{{${key}}}`, 'g'), String(value));
+        }
+      }
+      return text;
+    }) as unknown as any;
+
+    const futureDate = new Date(Date.now() + 2 * 3600 * 1000 + 10 * 60 * 1000).toISOString();
+    expect(formatResetCountdown(futureDate, t)).toBe('resets in 2h 10m');
+
+    const pastDate = new Date(Date.now() - 1000).toISOString();
+    expect(formatResetCountdown(pastDate, t)).toBe('resets now');
   });
 
   it('applies warning threshold when usage exceeds 70%', () => {
