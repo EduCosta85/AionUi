@@ -60,11 +60,17 @@ interface AutoUpdateCheckParams {
   includePrerelease?: boolean;
 }
 
-const DEFAULT_REPO = 'iOfficeAI/AionUi';
+const DEFAULT_REPO = 'EduCosta85/AionUi';
 const DEFAULT_USER_AGENT = 'AionUi';
 const ALLOWED_ASSET_EXTS = new Set(['.exe', '.msi', '.dmg', '.zip', '.deb', '.rpm']);
 const CDN_HOST = 'static.aionui.com';
 const CDN_BASE_URL = `https://${CDN_HOST}/releases`;
+
+const isCdnRepo = (repo: string): boolean => {
+  if (process.env.AIONUI_USE_CDN === '0') return false;
+  if (process.env.AIONUI_USE_CDN === '1') return true;
+  return repo.toLowerCase() === 'iofficeai/aionui';
+};
 const ALLOWED_DOWNLOAD_HOSTS = new Set<string>([
   CDN_HOST,
   'github.com',
@@ -256,6 +262,35 @@ export const mapCdnManifestToRelease = (manifest: CdnLatestManifest, repo: strin
     publishedAt: manifest.releaseDate,
     prerelease: false,
     draft: false,
+    assets,
+    recommendedAsset: pickRecommendedAsset(assets),
+  };
+};
+
+export const mapGitHubReleaseToUpdateInfo = (rel: GitHubReleaseApi): UpdateReleaseInfo | null => {
+  const version = normalizeTagToSemver(rel.tag_name);
+  if (!version) return null;
+
+  const assets: GitHubReleaseAsset[] = (rel.assets || [])
+    .filter((asset) => asset && asset.name && asset.browser_download_url)
+    .filter((asset) => isAllowedAssetName(asset.name))
+    .map((asset) => ({
+      name: asset.name,
+      url: asset.browser_download_url,
+      fallbackUrl: asset.browser_download_url,
+      size: asset.size ?? 0,
+      contentType: asset.content_type,
+    }));
+
+  return {
+    tagName: rel.tag_name,
+    version,
+    name: rel.name,
+    body: rel.body,
+    htmlUrl: rel.html_url,
+    publishedAt: rel.published_at,
+    prerelease: Boolean(rel.prerelease),
+    draft: Boolean(rel.draft),
     assets,
     recommendedAsset: pickRecommendedAsset(assets),
   };
@@ -689,31 +724,63 @@ export function initUpdateBridge(): void {
         // 若要 dev/预发布版本更新可靠生效，需要 CI 在 dev 构建时把 `package.json#version`
         // 注入为带 prerelease 的 semver（如 `1.7.2-dev.1234+sha.abcdef0`），以保证比较顺序正确。
 
-        // The CDN channel manifest is the authoritative source. It serves a single
-        // stable channel, so `includePrerelease` no longer affects detection.
-        const manifest = await fetchCdnManifest();
-        const latest = mapCdnManifestToRelease(manifest, repo);
+        if (isCdnRepo(repo)) {
+          // The CDN channel manifest is the authoritative source for official builds.
+          const manifest = await fetchCdnManifest();
+          const latest = mapCdnManifestToRelease(manifest, repo);
+
+          const currentSemver = semver.valid(currentVersion) || semver.coerce(currentVersion)?.version;
+          if (!currentSemver || !latest) {
+            return { success: true, data: { currentVersion, updateAvailable: false } };
+          }
+
+          // GitHub only enriches the result with release notes; it never blocks.
+          const enrichment = await fetchReleaseNotesEnrichment(repo, latest.version);
+
+          return {
+            success: true,
+            data: {
+              currentVersion,
+              updateAvailable: semver.gt(latest.version, currentSemver),
+              latest: {
+                ...latest,
+                body: enrichment.body,
+                name: enrichment.name,
+                htmlUrl: enrichment.htmlUrl ?? '',
+                publishedAt: enrichment.publishedAt ?? latest.publishedAt,
+              },
+            },
+          };
+        }
+
+        // Fork mode: fetch releases directly from this fork's GitHub repository
+        const releases = await fetchGitHubReleases(repo);
+        const includePrerelease = Boolean(params?.includePrerelease);
+        const candidates = releases
+          .filter((r) => r && !r.draft)
+          .filter((r) => (includePrerelease ? true : !r.prerelease))
+          .map(mapGitHubReleaseToUpdateInfo)
+          .filter((r): r is UpdateReleaseInfo => Boolean(r));
 
         const currentSemver = semver.valid(currentVersion) || semver.coerce(currentVersion)?.version;
-        if (!currentSemver || !latest) {
+        if (!currentSemver) {
           return { success: true, data: { currentVersion, updateAvailable: false } };
         }
 
-        // GitHub only enriches the result with release notes; it never blocks.
-        const enrichment = await fetchReleaseNotesEnrichment(repo, latest.version);
+        const latest = candidates
+          .filter((r) => semver.valid(r.version))
+          .toSorted((a, b) => semver.rcompare(a.version, b.version))[0];
+
+        if (!latest) {
+          return { success: true, data: { currentVersion, updateAvailable: false } };
+        }
 
         return {
           success: true,
           data: {
             currentVersion,
             updateAvailable: semver.gt(latest.version, currentSemver),
-            latest: {
-              ...latest,
-              body: enrichment.body,
-              name: enrichment.name,
-              htmlUrl: enrichment.htmlUrl ?? '',
-              publishedAt: enrichment.publishedAt ?? latest.publishedAt,
-            },
+            latest,
           },
         };
       } catch (err: unknown) {

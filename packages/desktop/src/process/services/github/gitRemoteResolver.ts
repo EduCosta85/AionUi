@@ -55,12 +55,12 @@ export function parseGitRemotesOutput(output: string): GitHubRepoIdentity[] {
     }
   }
 
-  // Sort priorities: 'upstream' first, then 'origin', then alphabetical
+  // Sort priorities: 'origin' first (this fork), then 'upstream' (official repository), then alphabetical
   return Array.from(remotesMap.values()).toSorted((a, b) => {
-    if (a.remoteName === 'upstream') return -1;
-    if (b.remoteName === 'upstream') return 1;
     if (a.remoteName === 'origin') return -1;
     if (b.remoteName === 'origin') return 1;
+    if (a.remoteName === 'upstream') return -1;
+    if (b.remoteName === 'upstream') return 1;
     return (a.remoteName || '').localeCompare(b.remoteName || '');
   });
 }

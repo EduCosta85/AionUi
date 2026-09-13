@@ -37,7 +37,7 @@ describe('gitRemoteResolver', () => {
   });
 
   describe('parseGitRemotesOutput', () => {
-    it('parses multi-remote git output and prioritizes upstream then origin', () => {
+    it('parses multi-remote git output and prioritizes origin then upstream', () => {
       const output = `
 origin\tgit@github.com:EduCosta85/AionUi.git (fetch)
 origin\tgit@github.com:EduCosta85/AionUi.git (push)
@@ -47,12 +47,12 @@ other\thttps://github.com/someone/other.git (fetch)
 `;
       const remotes = parseGitRemotesOutput(output);
       expect(remotes).toHaveLength(3);
-      expect(remotes[0].remoteName).toBe('upstream');
-      expect(remotes[0].owner).toBe('iOfficeAI');
+      expect(remotes[0].remoteName).toBe('origin');
+      expect(remotes[0].owner).toBe('EduCosta85');
       expect(remotes[0].repo).toBe('AionUi');
 
-      expect(remotes[1].remoteName).toBe('origin');
-      expect(remotes[1].owner).toBe('EduCosta85');
+      expect(remotes[1].remoteName).toBe('upstream');
+      expect(remotes[1].owner).toBe('iOfficeAI');
       expect(remotes[1].repo).toBe('AionUi');
 
       expect(remotes[2].remoteName).toBe('other');

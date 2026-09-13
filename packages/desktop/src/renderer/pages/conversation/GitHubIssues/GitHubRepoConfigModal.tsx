@@ -114,7 +114,7 @@ export const GitHubRepoConfigModal: React.FC<GitHubRepoConfigModalProps> = ({
           {detectedOptions.length > 0 ? (
             <Select allowCreate placeholder='owner/repo' options={detectedOptions} />
           ) : (
-            <Input placeholder='owner/repo (e.g. iOfficeAI/AionUi)' />
+            <Input placeholder='owner/repo (e.g. EduCosta85/AionUi)' />
           )}
         </Form.Item>
 

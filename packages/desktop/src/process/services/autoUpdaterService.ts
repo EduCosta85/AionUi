@@ -24,7 +24,7 @@ import {
   recordAutoUpdateQuitAndInstall,
   recordAutoUpdateStatus,
 } from './autoUpdateDiagnostics';
-import { buildCdnFeedOptions } from './updateFeed';
+import { buildUpdateFeedOptions } from './updateFeed';
 
 const FORCE_DEV_AUTO_UPDATE_ENV = 'AIONUI_FORCE_DEV_AUTO_UPDATE';
 const DEBUG_AUTO_UPDATE_CURRENT_VERSION_ENV = 'AIONUI_DEBUG_AUTO_UPDATE_CURRENT_VERSION';
@@ -131,7 +131,7 @@ class AutoUpdaterService extends EventEmitter {
     autoUpdater.autoDownload = false;
     autoUpdater.autoInstallOnAppQuit = true;
     this.configureDevAutoUpdateDebug();
-    const cdnFeedOptions = buildCdnFeedOptions();
+    const feedOptions = buildUpdateFeedOptions();
 
     // Set the correct update channel based on platform and architecture before
     // any update checks are performed
@@ -140,11 +140,10 @@ class AutoUpdaterService extends EventEmitter {
       autoUpdater.channel = channel;
       log.info(`Update channel set to: ${channel}`);
     }
-    autoUpdater.setFeedURL(cdnFeedOptions);
-    log.info('Update feed set to CDN provider');
-    log.debug('[auto-update] CDN feed configured', {
-      provider: cdnFeedOptions.provider,
-      url: cdnFeedOptions.url,
+    autoUpdater.setFeedURL(feedOptions as Parameters<typeof autoUpdater.setFeedURL>[0]);
+    log.info(`Update feed set to ${feedOptions.provider} provider`);
+    log.debug('[auto-update] Feed configured', {
+      provider: feedOptions.provider,
       channel: channel ?? 'latest',
       platform: process.platform,
       arch: process.arch,
@@ -194,13 +193,17 @@ class AutoUpdaterService extends EventEmitter {
    */
   private ensureDevUpdateConfig(): void {
     try {
-      const cdnFeedOptions = buildCdnFeedOptions();
-      const devConfig = [
-        'provider: generic',
-        `url: ${cdnFeedOptions.url}`,
-        'updaterCacheDirName: com.aionui.app',
-        '',
-      ].join('\n');
+      const feedOptions = buildUpdateFeedOptions();
+      const devConfig =
+        feedOptions.provider === 'github'
+          ? [
+              'provider: github',
+              `owner: ${feedOptions.owner}`,
+              `repo: ${feedOptions.repo}`,
+              'updaterCacheDirName: com.aionui.app',
+              '',
+            ].join('\n')
+          : ['provider: generic', `url: ${feedOptions.url}`, 'updaterCacheDirName: com.aionui.app', ''].join('\n');
       const configPath = path.join(app.getPath('userData'), 'dev-app-update.yml');
       fs.writeFileSync(configPath, devConfig, 'utf-8');
       autoUpdater.updateConfigPath = configPath;

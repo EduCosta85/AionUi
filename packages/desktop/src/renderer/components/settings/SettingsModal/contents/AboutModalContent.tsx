@@ -117,7 +117,7 @@ const AboutModalContent: React.FC = () => {
     },
     {
       title: t('settings.updateLog'),
-      url: 'https://github.com/iOfficeAI/AionUi/releases',
+      url: 'https://github.com/EduCosta85/AionUi/releases',
       icon: <Right theme='outline' size='16' className='rtl-mirror' />,
     },
     {
@@ -162,7 +162,7 @@ const AboutModalContent: React.FC = () => {
               <div
                 className='text-t-primary cursor-pointer hover:text-t-secondary transition-colors p-4px'
                 onClick={() =>
-                  openLink('https://github.com/iOfficeAI/AionUi').catch((error) =>
+                  openLink('https://github.com/EduCosta85/AionUi').catch((error) =>
                     console.error('Failed to open link:', error)
                   )
                 }

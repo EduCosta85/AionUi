@@ -92,6 +92,8 @@ describe('AutoUpdaterService', () => {
     appMock.isPackaged = false;
     delete process.env.AIONUI_FORCE_DEV_AUTO_UPDATE;
     delete process.env.AIONUI_DEBUG_AUTO_UPDATE_CURRENT_VERSION;
+    delete process.env.AIONUI_USE_CDN;
+    delete process.env.AIONUI_GITHUB_REPO;
     nativeAutoUpdaterMock.on.mockReset();
     nativeAutoUpdaterMock.removeListener.mockReset();
     Object.defineProperty(autoUpdaterMock, 'currentVersion', {
@@ -170,7 +172,20 @@ describe('AutoUpdaterService', () => {
     expect(result).toEqual({ success: true, updateInfo });
   });
 
-  it('configures electron-updater to read stable metadata from the CDN', async () => {
+  it('configures electron-updater to read from GitHub for the fork by default', async () => {
+    const { autoUpdaterService } = await import('@/process/services/autoUpdaterService');
+
+    autoUpdaterService.resetForTest();
+
+    expect(autoUpdaterMock.setFeedURL).toHaveBeenCalledWith({
+      provider: 'github',
+      owner: 'EduCosta85',
+      repo: 'AionUi',
+    });
+  });
+
+  it('configures electron-updater to read stable metadata from the CDN when AIONUI_USE_CDN=1', async () => {
+    process.env.AIONUI_USE_CDN = '1';
     const { autoUpdaterService } = await import('@/process/services/autoUpdaterService');
     const { CdnGenericProvider } = await import('@/process/services/cdnGenericProvider');
 

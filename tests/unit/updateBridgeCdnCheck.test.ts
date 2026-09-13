@@ -148,10 +148,12 @@ const jsonResponse = (body: unknown) => new Response(JSON.stringify(body), { sta
 describe('update.check CDN-first', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    process.env.AIONUI_USE_CDN = '1';
   });
 
   afterEach(() => {
     vi.unstubAllGlobals();
+    delete process.env.AIONUI_USE_CDN;
   });
 
   it('reports an update from the CDN manifest and attaches GitHub notes', async () => {
@@ -213,5 +215,56 @@ describe('update.check CDN-first', () => {
     const handler = await getCheckHandler();
     const res = await handler({});
     expect(res.success).toBe(false);
+  });
+});
+
+describe('update.check fork GitHub releases mode', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    delete process.env.AIONUI_USE_CDN;
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('checks updates directly from GitHub releases for the fork', async () => {
+    const forkReleases = [
+      {
+        tag_name: 'v2.3.0',
+        name: 'v2.3.0',
+        body: 'fork release notes',
+        html_url: 'https://github.com/EduCosta85/AionUi/releases/tag/v2.3.0',
+        prerelease: false,
+        draft: false,
+        assets: [
+          {
+            name: 'AionUi-2.3.0-mac-arm64.dmg',
+            browser_download_url:
+              'https://github.com/EduCosta85/AionUi/releases/download/v2.3.0/AionUi-2.3.0-mac-arm64.dmg',
+            size: 12345,
+          },
+        ],
+      },
+    ];
+
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.includes('api.github.com/repos/EduCosta85/AionUi/releases')) {
+        return jsonResponse(forkReleases);
+      }
+      throw new Error(`unexpected fetch: ${url}`);
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const handler = await getCheckHandler();
+    const res = await handler({ repo: 'EduCosta85/AionUi' });
+    expect(res.success).toBe(true);
+    expect(res.data?.updateAvailable).toBe(true);
+    expect(res.data?.latest?.version).toBe('2.3.0');
+    expect(res.data?.latest?.htmlUrl).toBe('https://github.com/EduCosta85/AionUi/releases/tag/v2.3.0');
+    expect(res.data?.latest?.recommendedAsset?.url).toBe(
+      'https://github.com/EduCosta85/AionUi/releases/download/v2.3.0/AionUi-2.3.0-mac-arm64.dmg'
+    );
   });
 });
