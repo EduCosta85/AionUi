@@ -549,7 +549,15 @@
     "noUsage": "0 jeton",
     "quota": "Quota",
     "quotaUsed": "{{percentage}} de quota",
-    "quotaSummary": "{{percentage}} de quota • {{tokens}}"
+    "quotaSummary": "{{percentage}} de quota • {{tokens}}",
+    "modelQuota": "Quota du modèle",
+    "remaining": "restant",
+    "quotaRemainingSummary": "{{percentage}} restant ({{window}})",
+    "resetsIn": "se réinitialise dans {{time}}",
+    "resetsNow": "se réinitialise maintenant",
+    "fiveHourLimit": "Limite de 5 heures",
+    "weeklyLimit": "Limite hebdomadaire",
+    "sessionUsage": "Utilisation de la session"
   },
   "skill_generator": {
     "title": "Générer une compétence/règle",

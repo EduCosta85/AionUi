@@ -549,7 +549,15 @@
     "noUsage": "0 トークン",
     "quota": "クォータ",
     "quotaUsed": "{{percentage}} クォータ",
-    "quotaSummary": "{{percentage}} クォータ • {{tokens}}"
+    "quotaSummary": "{{percentage}} クォータ • {{tokens}}",
+    "modelQuota": "モデルクォータ",
+    "remaining": "残り",
+    "quotaRemainingSummary": "残り {{percentage}}（{{window}}）",
+    "resetsIn": "{{time}} 後にリセット",
+    "resetsNow": "今すぐリセット",
+    "fiveHourLimit": "5時間制限",
+    "weeklyLimit": "週間制限",
+    "sessionUsage": "セッション使用量"
   },
   "skill_generator": {
     "title": "Generate Skill/Rule",

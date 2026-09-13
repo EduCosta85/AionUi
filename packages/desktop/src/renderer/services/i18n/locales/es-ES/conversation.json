@@ -550,7 +550,15 @@
     "noUsage": "0 tokens",
     "quota": "Cuota",
     "quotaUsed": "{{percentage}} de cuota",
-    "quotaSummary": "{{percentage}} de cuota • {{tokens}}"
+    "quotaSummary": "{{percentage}} de cuota • {{tokens}}",
+    "modelQuota": "Cuota del modelo",
+    "remaining": "restante",
+    "quotaRemainingSummary": "{{percentage}} restante ({{window}})",
+    "resetsIn": "se restablece en {{time}}",
+    "resetsNow": "restableciendo ahora",
+    "fiveHourLimit": "Límite de 5 horas",
+    "weeklyLimit": "Límite semanal",
+    "sessionUsage": "Uso de la sesión"
   },
   "skill_generator": {
     "title": "Generar habilidad/regla",

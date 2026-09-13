@@ -549,7 +549,15 @@
     "noUsage": "0 tokens",
     "quota": "Quota",
     "quotaUsed": "{{percentage}} quota",
-    "quotaSummary": "{{percentage}} quota • {{tokens}}"
+    "quotaSummary": "{{percentage}} quota • {{tokens}}",
+    "modelQuota": "Model Quota",
+    "remaining": "remaining",
+    "quotaRemainingSummary": "{{percentage}} remaining ({{window}})",
+    "resetsIn": "resets in {{time}}",
+    "resetsNow": "resets now",
+    "fiveHourLimit": "5-Hour Limit",
+    "weeklyLimit": "Weekly Limit",
+    "sessionUsage": "Session Usage"
   },
   "skill_generator": {
     "title": "Generate Skill/Rule",

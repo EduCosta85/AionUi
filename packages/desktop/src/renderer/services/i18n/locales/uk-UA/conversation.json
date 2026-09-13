@@ -557,7 +557,15 @@
     "noUsage": "0 токенів",
     "quota": "Квота",
     "quotaUsed": "{{percentage}} квоти",
-    "quotaSummary": "{{percentage}} квоти • {{tokens}}"
+    "quotaSummary": "{{percentage}} квоти • {{tokens}}",
+    "modelQuota": "Квота моделі",
+    "remaining": "залишилося",
+    "quotaRemainingSummary": "{{percentage}} залишилося ({{window}})",
+    "resetsIn": "скидання через {{time}}",
+    "resetsNow": "скидається зараз",
+    "fiveHourLimit": "Ліміт на 5 годин",
+    "weeklyLimit": "Щотижневий ліміт",
+    "sessionUsage": "Використання за сесію"
   },
   "skill_generator": {
     "title": "Створити Навичку/Правило",
