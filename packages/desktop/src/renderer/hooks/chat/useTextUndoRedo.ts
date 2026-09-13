@@ -5,7 +5,9 @@
  */
 
 import { useCallback, useEffect, useRef } from 'react';
-import type { KeyboardEvent } from 'react';
+import type { KeyboardEvent as ReactKeyboardEvent } from 'react';
+
+type KeyboardEventLike = ReactKeyboardEvent | KeyboardEvent;
 
 type TextHistoryAction = 'undo' | 'redo';
 
@@ -24,7 +26,7 @@ type TextSnapshot = {
  * - Ctrl+Y               -> redo (Windows/Linux convention; Cmd+Y is excluded
  *                          on macOS because it is not a standard accelerator)
  */
-const getTextHistoryAction = (event: KeyboardEvent): TextHistoryAction | null => {
+const getTextHistoryAction = (event: KeyboardEventLike): TextHistoryAction | null => {
   const key = event.key.toLowerCase();
   const hasCommandModifier = event.metaKey || event.ctrlKey;
   if (!hasCommandModifier || event.altKey) {
@@ -197,7 +199,7 @@ export const useTextUndoRedo = ({ getTextarea, applyValue, isComposing }: UseTex
 
   /** Handles Cmd/Ctrl+Z, Cmd/Ctrl+Shift+Z and Ctrl+Y at the keydown layer. */
   const handleUndoRedoKeyDown = useCallback(
-    (event: KeyboardEvent): boolean => {
+    (event: KeyboardEventLike): boolean => {
       if (isComposing()) {
         return false;
       }

@@ -29,6 +29,7 @@ export const useCompositionInput = () => {
       // Safari can dispatch compositionend before the keydown that confirms
       // the IME candidate, so the ref may already be false at this point.
       if (isComposing.current || e.nativeEvent.isComposing || e.nativeEvent.keyCode === 229) return;
+      if (onKeyDownIntercept?.(e)) return;
       if (e.key !== 'Enter' || e.shiftKey) return;
 
       const hasModifier = e.metaKey || e.ctrlKey;
@@ -37,13 +38,11 @@ export const useCompositionInput = () => {
       if (isModifierMode) {
         // Mod+Enter mode: only Mod+Enter sends; bare Enter is a newline
         if (!hasModifier) return;
-        if (onKeyDownIntercept?.(e)) return;
         e.preventDefault();
         onEnterPress();
       } else {
         // Default mode: only bare Enter sends; Mod+Enter is a newline
         if (hasModifier) return;
-        if (onKeyDownIntercept?.(e)) return;
         e.preventDefault();
         onEnterPress();
       }
