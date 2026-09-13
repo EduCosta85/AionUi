@@ -73,7 +73,7 @@ describe('GitHubRepoConfigModal', () => {
       <GitHubRepoConfigModal visible={true} repoInfo={mockRepoInfoWithoutGh} onCancel={vi.fn()} onSave={onSave} />
     );
 
-    const repoInput = screen.getByPlaceholderText('owner/repo (e.g. iOfficeAI/AionUi)');
+    const repoInput = screen.getByPlaceholderText(/owner\/repo/);
     await user.clear(repoInput);
     await user.type(repoInput, 'invalid-repo-without-slash');
 
@@ -95,7 +95,7 @@ describe('GitHubRepoConfigModal', () => {
       <GitHubRepoConfigModal visible={true} repoInfo={mockRepoInfoWithoutGh} onCancel={onCancel} onSave={onSave} />
     );
 
-    const repoInput = screen.getByPlaceholderText('owner/repo (e.g. iOfficeAI/AionUi)');
+    const repoInput = screen.getByPlaceholderText(/owner\/repo/);
     const tokenInput = screen.getByPlaceholderText('ghp_...');
 
     await user.type(repoInput, 'owner-name/repo-name');

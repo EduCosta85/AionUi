@@ -328,7 +328,7 @@ describe('GitHubIssuesPanel', () => {
       expect(screen.getByTestId('github-repo-config-modal')).toBeInTheDocument();
     });
 
-    const repoInput = screen.getByPlaceholderText('owner/repo (e.g. iOfficeAI/AionUi)');
+    const repoInput = screen.getByPlaceholderText(/owner\/repo/);
     fireEvent.change(repoInput, { target: { value: 'other-org/other-repo' } });
 
     const saveBtn = screen.getByText('Save');
