@@ -546,7 +546,10 @@
     "cachedRead": "캐시 읽기",
     "cachedWrite": "캐시 쓰기",
     "modelUsage": "모델 사용량",
-    "noUsage": "0개 토큰"
+    "noUsage": "0개 토큰",
+    "quota": "할당량",
+    "quotaUsed": "{{percentage}} 할당량",
+    "quotaSummary": "{{percentage}} 할당량 • {{tokens}}"
   },
   "skill_generator": {
     "title": "스킬/규칙 생성",

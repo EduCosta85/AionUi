@@ -54,15 +54,20 @@ const SiderModelUsage: React.FC<SiderModelUsageProps> = ({
     [hasLimit, contextLimit, locale]
   );
 
+  const formattedPct = useMemo(() => formatPercentage(percentage, locale), [percentage, locale]);
+
   const usageSubtitle = useMemo(() => {
-    if (totalTokens <= 0 && !hasLimit) {
+    if (hasLimit) {
+      return t('conversation.contextUsage.quotaSummary', '{{percentage}} quota • {{tokens}}', {
+        percentage: formattedPct,
+        tokens: `${displayTotal} / ${displayLimit}`,
+      });
+    }
+    if (totalTokens <= 0) {
       return t('conversation.contextUsage.noUsage', '0 tokens');
     }
-    if (hasLimit) {
-      return `${displayTotal} / ${displayLimit} (${formatPercentage(percentage, locale)})`;
-    }
     return t('conversation.contextUsage.tokensUsed', '{{tokens}} tokens', { tokens: displayTotal });
-  }, [totalTokens, hasLimit, displayTotal, displayLimit, percentage, locale, t]);
+  }, [hasLimit, totalTokens, formattedPct, displayTotal, displayLimit, t]);
 
   const handleNavigateToModelSettings = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -142,14 +147,14 @@ const SiderModelUsage: React.FC<SiderModelUsageProps> = ({
       {hasLimit ? (
         <div className='flex flex-col gap-4px'>
           <div className='flex items-center justify-between text-12px'>
-            <span className='text-t-secondary'>{t('conversation.contextUsage.contextUsed', 'Context used')}</span>
+            <span className='text-t-secondary'>{t('conversation.contextUsage.quota', 'Quota')}</span>
             <span
               className={classNames(
                 'font-mono font-medium',
                 isDanger ? 'text-danger-6' : isWarning ? 'text-warning-6' : 'text-t-primary'
               )}
             >
-              {displayTotal} / {displayLimit} ({formatPercentage(percentage, locale)})
+              {formattedPct} ({displayTotal} / {displayLimit})
             </span>
           </div>
           <div className='w-full h-6px rd-3px bg-fill-3 overflow-hidden'>

@@ -546,7 +546,10 @@
     "cachedRead": "キャッシュ読み取り",
     "cachedWrite": "キャッシュ書き込み",
     "modelUsage": "モデル使用量",
-    "noUsage": "0 トークン"
+    "noUsage": "0 トークン",
+    "quota": "クォータ",
+    "quotaUsed": "{{percentage}} クォータ",
+    "quotaSummary": "{{percentage}} クォータ • {{tokens}}"
   },
   "skill_generator": {
     "title": "Generate Skill/Rule",

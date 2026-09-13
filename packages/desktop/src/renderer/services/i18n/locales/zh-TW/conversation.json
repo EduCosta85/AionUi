@@ -546,7 +546,10 @@
     "cachedRead": "快取讀取",
     "cachedWrite": "快取寫入",
     "modelUsage": "模型用量",
-    "noUsage": "0 個 token"
+    "noUsage": "0 個 token",
+    "quota": "額度",
+    "quotaUsed": "{{percentage}} 額度",
+    "quotaSummary": "{{percentage}} 額度 • {{tokens}}"
   },
   "skill_generator": {
     "title": "Generate Skill/Rule",

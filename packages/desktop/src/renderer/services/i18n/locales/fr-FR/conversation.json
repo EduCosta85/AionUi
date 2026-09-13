@@ -546,7 +546,10 @@
     "cachedRead": "Lecture du cache",
     "cachedWrite": "Écriture du cache",
     "modelUsage": "Utilisation du modèle",
-    "noUsage": "0 jeton"
+    "noUsage": "0 jeton",
+    "quota": "Quota",
+    "quotaUsed": "{{percentage}} de quota",
+    "quotaSummary": "{{percentage}} de quota • {{tokens}}"
   },
   "skill_generator": {
     "title": "Générer une compétence/règle",

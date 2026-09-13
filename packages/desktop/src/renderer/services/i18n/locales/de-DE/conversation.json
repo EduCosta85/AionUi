@@ -547,7 +547,10 @@
     "cachedRead": "Cache-Lesen",
     "cachedWrite": "Cache-Schreiben",
     "modelUsage": "Modellnutzung",
-    "noUsage": "0 Tokens"
+    "noUsage": "0 Tokens",
+    "quota": "Kontingent",
+    "quotaUsed": "{{percentage}} Kontingent",
+    "quotaSummary": "{{percentage}} Kontingent • {{tokens}}"
   },
   "skill_generator": {
     "title": "Skill/Regel generieren",

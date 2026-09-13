@@ -554,7 +554,10 @@
     "cachedRead": "Читання кешу",
     "cachedWrite": "Запис кешу",
     "modelUsage": "Використання моделі",
-    "noUsage": "0 токенів"
+    "noUsage": "0 токенів",
+    "quota": "Квота",
+    "quotaUsed": "{{percentage}} квоти",
+    "quotaSummary": "{{percentage}} квоти • {{tokens}}"
   },
   "skill_generator": {
     "title": "Створити Навичку/Правило",

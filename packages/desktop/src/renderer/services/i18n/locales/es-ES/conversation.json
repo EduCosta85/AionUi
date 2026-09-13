@@ -547,7 +547,10 @@
     "cachedRead": "Lectura de caché",
     "cachedWrite": "Escritura de caché",
     "modelUsage": "Uso del modelo",
-    "noUsage": "0 tokens"
+    "noUsage": "0 tokens",
+    "quota": "Cuota",
+    "quotaUsed": "{{percentage}} de cuota",
+    "quotaSummary": "{{percentage}} de cuota • {{tokens}}"
   },
   "skill_generator": {
     "title": "Generar habilidad/regla",

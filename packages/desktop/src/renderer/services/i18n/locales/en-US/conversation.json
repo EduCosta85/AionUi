@@ -546,7 +546,10 @@
     "cachedRead": "Cache read",
     "cachedWrite": "Cache write",
     "modelUsage": "Model usage",
-    "noUsage": "0 tokens"
+    "noUsage": "0 tokens",
+    "quota": "Quota",
+    "quotaUsed": "{{percentage}} quota",
+    "quotaSummary": "{{percentage}} quota • {{tokens}}"
   },
   "skill_generator": {
     "title": "Generate Skill/Rule",
