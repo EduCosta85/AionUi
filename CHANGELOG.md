@@ -1,5 +1,22 @@
 # Changelog
 
+## [2.3.0](https://github.com/EduCosta85/AionUi/compare/v2.2.2...v2.3.0) (2026-09-12)
+
+### Desktop
+
+#### Features
+
+- **stt:** add local speech dictation powered by Parakeet TDT via sherpa-onnx (#4246)
+- **conversation:** add task completion walkthrough card and semantic parser (#4247)
+- **terminal:** add interactive sidebar terminal and chat execute action (#4249)
+- **github:** add GitHub Issues panel with parallel issue creation and agent fix tasks (#4252)
+
+#### Documentation
+
+- **contributing:** add open-pr agent skill and PR guidelines (#4248)
+
+---
+
 ## [2.2.2](https://github.com/iOfficeAI/AionUi/compare/v2.2.1...v2.2.2) (2026-09-09)
 
 ### Desktop
