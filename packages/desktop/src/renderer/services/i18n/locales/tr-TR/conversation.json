@@ -531,7 +531,10 @@
     "cachedRead": "Önbellek okuma",
     "cachedWrite": "Önbellek yazma",
     "modelUsage": "Model kullanımı",
-    "noUsage": "0 belirteç"
+    "noUsage": "0 belirteç",
+    "quota": "Kota",
+    "quotaUsed": "{{percentage}} kota",
+    "quotaSummary": "{{percentage}} kota • {{tokens}}"
   },
   "skill_generator": {
     "title": "Yetenek/Kural Oluştur",

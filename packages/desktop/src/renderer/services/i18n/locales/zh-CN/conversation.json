@@ -546,7 +546,10 @@
     "cachedRead": "缓存读",
     "cachedWrite": "缓存写",
     "modelUsage": "模型使用量",
-    "noUsage": "0 个 token"
+    "noUsage": "0 个 token",
+    "quota": "额度",
+    "quotaUsed": "{{percentage}} 额度",
+    "quotaSummary": "{{percentage}} 额度 • {{tokens}}"
   },
   "skill_generator": {
     "title": "生成 Skill/规则",

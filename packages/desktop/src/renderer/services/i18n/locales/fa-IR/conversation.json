@@ -546,7 +546,10 @@
     "cachedRead": "خواندن حافظه پنهان",
     "cachedWrite": "نوشتن حافظه پنهان",
     "modelUsage": "مصرف مدل",
-    "noUsage": "0 توکن"
+    "noUsage": "0 توکن",
+    "quota": "سهمیه",
+    "quotaUsed": "{{percentage}} سهمیه",
+    "quotaSummary": "{{percentage}} سهمیه • {{tokens}}"
   },
   "skill_generator": {
     "title": "ساخت مهارت/قانون",

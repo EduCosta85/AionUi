@@ -10,7 +10,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { IResponseMessage } from '@/common/adapter/ipcBridge';
 import type { ConversationRecord } from '@/common/config/storage';
 import SiderModelUsage from '@/renderer/components/layout/Sider/SiderNav/SiderModelUsage';
-import { useActiveModelUsage } from '@/renderer/hooks/agent/useActiveModelUsage';
+import { resolveModelContextLimit, useActiveModelUsage } from '@/renderer/hooks/agent/useActiveModelUsage';
 
 const navigateMock = vi.fn();
 let currentPathname = '/conversation/conv-1';
@@ -23,9 +23,13 @@ vi.mock('react-router-dom', () => ({
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
     t: (key: string, fallbackOrOptions?: string | Record<string, unknown>, options?: Record<string, unknown>) => {
-      if (typeof fallbackOrOptions === 'string') return fallbackOrOptions;
-      if (options && typeof (options as { tokens?: string }).tokens === 'string') {
-        return `${(options as { tokens: string }).tokens} tokens used`;
+      if (typeof fallbackOrOptions === 'string') {
+        let res = fallbackOrOptions;
+        const opts = (typeof options === 'object' ? options : {}) as Record<string, unknown>;
+        for (const [k, v] of Object.entries(opts)) {
+          res = res.replace(new RegExp(`{{${k}}}`, 'g'), String(v));
+        }
+        return res;
       }
       return key;
     },
@@ -120,7 +124,7 @@ describe('SiderModelUsage and useActiveModelUsage', () => {
     expect(screen.getByTestId('sider-model-usage')).toBeInTheDocument();
     expect(screen.getAllByText('claude-3-7-sonnet').length).toBeGreaterThan(0);
     expect(screen.getByText('25%')).toBeInTheDocument();
-    expect(screen.getAllByText('50.0K / 200K (25.0%)').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('25.0% quota • 50.0K / 200K').length).toBeGreaterThan(0);
   });
 
   it('navigates to /settings/model when clicked in expanded mode', () => {
@@ -146,6 +150,7 @@ describe('SiderModelUsage and useActiveModelUsage', () => {
     const popover = screen.getByTestId('sider-model-usage-popover');
     expect(popover).toBeInTheDocument();
 
+    expect(screen.getByText('Quota')).toBeInTheDocument();
     expect(screen.getByText('Claude Agent')).toBeInTheDocument();
     expect(screen.getByText('Input')).toBeInTheDocument();
     expect(screen.getByText('Output')).toBeInTheDocument();
@@ -161,7 +166,8 @@ describe('SiderModelUsage and useActiveModelUsage', () => {
     render(<SiderModelUsage collapsed={false} />);
 
     expect(screen.getAllByText('Default Model').length).toBeGreaterThan(0);
-    expect(screen.getByText('0 tokens')).toBeInTheDocument();
+    expect(screen.getAllByText('0.0% quota • 0 / 128K').length).toBeGreaterThan(0);
+    expect(screen.getByText('0%')).toBeInTheDocument();
   });
 
   it('applies warning threshold when usage exceeds 70%', () => {
@@ -247,5 +253,14 @@ describe('SiderModelUsage and useActiveModelUsage', () => {
     const { unmount } = renderHook(() => useActiveModelUsage());
     unmount();
     expect(unsubscribeMock).toHaveBeenCalled();
+  });
+
+  it('resolves default model context quota limits when limit is not reported', () => {
+    expect(resolveModelContextLimit('claude-3-7-sonnet')).toBe(200000);
+    expect(resolveModelContextLimit('gemini-2.5-pro')).toBe(1000000);
+    expect(resolveModelContextLimit('gpt-4o')).toBe(128000);
+    expect(resolveModelContextLimit('deepseek-v3')).toBe(64000);
+    expect(resolveModelContextLimit('custom-model', 500000)).toBe(500000);
+    expect(resolveModelContextLimit()).toBe(128000);
   });
 });

@@ -552,7 +552,10 @@
     "cachedRead": "Leitura de cache",
     "cachedWrite": "Escrita de cache",
     "modelUsage": "Uso do modelo",
-    "noUsage": "0 tokens"
+    "noUsage": "0 tokens",
+    "quota": "Cota",
+    "quotaUsed": "{{percentage}} de cota",
+    "quotaSummary": "{{percentage}} de cota • {{tokens}}"
   },
   "skill_generator": {
     "title": "Gerar Habilidade/Regra",

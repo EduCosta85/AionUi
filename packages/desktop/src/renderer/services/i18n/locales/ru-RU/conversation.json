@@ -554,7 +554,10 @@
     "cachedRead": "Чтение кэша",
     "cachedWrite": "Запись кэша",
     "modelUsage": "Использование модели",
-    "noUsage": "0 токенов"
+    "noUsage": "0 токенов",
+    "quota": "Квота",
+    "quotaUsed": "{{percentage}} квоты",
+    "quotaSummary": "{{percentage}} квоты • {{tokens}}"
   },
   "skill_generator": {
     "title": "Создать навык/правило",

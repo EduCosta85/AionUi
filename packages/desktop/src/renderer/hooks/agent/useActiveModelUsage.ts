@@ -125,7 +125,7 @@ export function useActiveModelUsage(): ActiveModelUsage {
   const agentName = extra?.agent_name || extra?.backend || null;
 
   const totalTokens = liveUsage?.total_tokens ?? 0;
-  const contextLimit = liveContextLimit > 0 ? liveContextLimit : 0;
+  const contextLimit = resolveModelContextLimit(modelName, liveContextLimit);
   const hasLimit = contextLimit > 0;
   const percentage = hasLimit ? (totalTokens / contextLimit) * 100 : 0;
   const isWarning = percentage > 70;
@@ -143,4 +143,31 @@ export function useActiveModelUsage(): ActiveModelUsage {
     cost: liveUsage?.cost,
     breakdown: liveUsage?.breakdown,
   };
+}
+
+/**
+ * Resolves a model's context quota limit in tokens.
+ * Uses the reported limit if positive, or falls back to known defaults based on the model family.
+ */
+export function resolveModelContextLimit(modelName?: string, reportedLimit?: number): number {
+  if (reportedLimit && reportedLimit > 0) return reportedLimit;
+  if (!modelName) return 128_000;
+
+  const lower = modelName.toLowerCase();
+  if (lower.includes('gemini')) {
+    return 1_000_000;
+  }
+  if (lower.includes('claude')) {
+    return 200_000;
+  }
+  if (lower.includes('gpt-4') || lower.includes('o1') || lower.includes('o3') || lower.includes('o4')) {
+    return 128_000;
+  }
+  if (lower.includes('deepseek')) {
+    return 64_000;
+  }
+  if (lower.includes('qwen')) {
+    return 128_000;
+  }
+  return 128_000;
 }
