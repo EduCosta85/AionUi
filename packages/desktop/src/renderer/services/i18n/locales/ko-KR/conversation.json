@@ -544,7 +544,9 @@
     "output": "출력",
     "thought": "사고",
     "cachedRead": "캐시 읽기",
-    "cachedWrite": "캐시 쓰기"
+    "cachedWrite": "캐시 쓰기",
+    "modelUsage": "모델 사용량",
+    "noUsage": "0개 토큰"
   },
   "skill_generator": {
     "title": "스킬/규칙 생성",

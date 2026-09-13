@@ -552,7 +552,9 @@
     "output": "Вывод",
     "thought": "Размышление",
     "cachedRead": "Чтение кэша",
-    "cachedWrite": "Запись кэша"
+    "cachedWrite": "Запись кэша",
+    "modelUsage": "Использование модели",
+    "noUsage": "0 токенов"
   },
   "skill_generator": {
     "title": "Создать навык/правило",

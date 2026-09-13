@@ -544,7 +544,9 @@
     "output": "輸出",
     "thought": "思考",
     "cachedRead": "快取讀取",
-    "cachedWrite": "快取寫入"
+    "cachedWrite": "快取寫入",
+    "modelUsage": "模型用量",
+    "noUsage": "0 個 token"
   },
   "skill_generator": {
     "title": "Generate Skill/Rule",

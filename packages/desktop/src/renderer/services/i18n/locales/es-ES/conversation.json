@@ -545,7 +545,9 @@
     "output": "Salida",
     "thought": "Razonamiento",
     "cachedRead": "Lectura de caché",
-    "cachedWrite": "Escritura de caché"
+    "cachedWrite": "Escritura de caché",
+    "modelUsage": "Uso del modelo",
+    "noUsage": "0 tokens"
   },
   "skill_generator": {
     "title": "Generar habilidad/regla",

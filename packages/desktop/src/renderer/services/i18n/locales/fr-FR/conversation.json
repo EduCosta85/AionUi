@@ -544,7 +544,9 @@
     "output": "Sortie",
     "thought": "Réflexion",
     "cachedRead": "Lecture du cache",
-    "cachedWrite": "Écriture du cache"
+    "cachedWrite": "Écriture du cache",
+    "modelUsage": "Utilisation du modèle",
+    "noUsage": "0 jeton"
   },
   "skill_generator": {
     "title": "Générer une compétence/règle",

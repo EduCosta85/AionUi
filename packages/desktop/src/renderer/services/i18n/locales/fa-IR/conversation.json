@@ -544,7 +544,9 @@
     "output": "خروجی",
     "thought": "تفکر",
     "cachedRead": "خواندن حافظه پنهان",
-    "cachedWrite": "نوشتن حافظه پنهان"
+    "cachedWrite": "نوشتن حافظه پنهان",
+    "modelUsage": "مصرف مدل",
+    "noUsage": "0 توکن"
   },
   "skill_generator": {
     "title": "ساخت مهارت/قانون",

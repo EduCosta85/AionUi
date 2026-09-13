@@ -559,6 +559,8 @@ export type I18nKey =
   | 'conversation.contextUsage.cachedWrite'
   | 'conversation.contextUsage.contextUsed'
   | 'conversation.contextUsage.input'
+  | 'conversation.contextUsage.modelUsage'
+  | 'conversation.contextUsage.noUsage'
   | 'conversation.contextUsage.output'
   | 'conversation.contextUsage.sessionCost'
   | 'conversation.contextUsage.thought'

@@ -550,7 +550,9 @@
     "output": "Saída",
     "thought": "Raciocínio",
     "cachedRead": "Leitura de cache",
-    "cachedWrite": "Escrita de cache"
+    "cachedWrite": "Escrita de cache",
+    "modelUsage": "Uso do modelo",
+    "noUsage": "0 tokens"
   },
   "skill_generator": {
     "title": "Gerar Habilidade/Regra",
