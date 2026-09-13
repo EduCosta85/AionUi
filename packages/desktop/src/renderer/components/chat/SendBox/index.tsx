@@ -55,6 +55,7 @@ import React, { useCallback, useDeferredValue, useEffect, useLayoutEffect, useMe
 import { useTranslation } from 'react-i18next';
 import useSWR from 'swr';
 import { useCompositionInput } from '@renderer/hooks/chat/useCompositionInput';
+import { useTextUndoRedo } from '@/renderer/hooks/chat/useTextUndoRedo';
 import { useConversationExport } from '@renderer/hooks/file/useConversationExport';
 import { useDragUpload } from '@renderer/hooks/file/useDragUpload';
 import { useLatestRef } from '@renderer/hooks/ui/useLatestRef';
@@ -1311,7 +1312,28 @@ const SendBox: React.FC<{
   );
 
   // 使用共享的输入法合成处理
-  const { compositionHandlers, isComposingState, createKeyDownHandler } = useCompositionInput();
+  const { compositionHandlers, isComposing, isComposingState, createKeyDownHandler } = useCompositionInput();
+
+  // 受控 textarea 的原生撤销栈会被 React 重写打散成逐字符条目，这里用自定义历史替换，
+  // 让 Cmd/Ctrl+Z 能按“一次输入批次”整体撤销，并保持 React 状态同步。
+  const applyUndoRedoValue = useCallback(
+    (value: string, start: number, end: number) => {
+      setInput(value);
+      setCaretPosition(start);
+      requestAnimationFrame(() => {
+        const textarea = getTextareaElement();
+        if (textarea && textarea.value === value) {
+          textarea.setSelectionRange(start, end);
+        }
+      });
+    },
+    [getTextareaElement, setCaretPosition, setInput]
+  );
+  const { handleUndoRedoKeyDown } = useTextUndoRedo({
+    getTextarea: getTextareaElement,
+    applyValue: applyUndoRedoValue,
+    isComposing: () => isComposing.current,
+  });
 
   // 使用共享的PasteService集成
   const { onPaste, onFocus: handlePasteFocus } = usePasteService({
@@ -2199,6 +2221,7 @@ const SendBox: React.FC<{
               autoSize={isSingleLine ? false : { minRows: 1, maxRows: 10 }}
               onKeyDown={createKeyDownHandler(handlePrimaryAction, (event) => {
                 return (
+                  handleUndoRedoKeyDown(event.nativeEvent) ||
                   handleAddToDraftShortcut(event) ||
                   handleAtSessionMenuKeyDown(event) ||
                   handleAtFileMenuKeyDown(event) ||
